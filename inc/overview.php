@@ -20,7 +20,6 @@
   echo "Program: " . $rows["program_code"] . " - " . $rows["program_title"] . "<br><br>";
   echo "Stream: " . $rows["stream_code"] . " - " . $rows["stream_title"] . "<br><br>";
   echo "Career: " . $rows["stream_career"] . "<br><br>";
-  echo "Term Start: " . $rows["term_code"] . "<br><br>";
 
   $streamCode = $rows["stream_code"];
 

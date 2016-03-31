@@ -21,7 +21,7 @@
   echo "<div col-md-6'><table class='table table-striped'>";
   echo "<thead><tr><th>#</th><th>Course</th><th>Course Title</th><th>Mark</th><th>Grade</th><th>Term</th></tr></thead>";
   while ($rows = pg_fetch_array($result)) {
-    $subject = $rows["subject_code"];
+    $subject = $rows["subject_code"] . " - " . $rows["term_code"];
     if (!in_array($subject, $subjects)) {
       $subjects[$index] = $subject;
       echo "<tbody><tr>";
@@ -37,7 +37,7 @@
   }
   echo "</table></div>";
 
-  echo "<h2>Remaining Prerequisites</h2>";
+  /*echo "<h2>Remaining Prerequisites</h2>";
   $done = false;
   foreach ($prerequisites as &$prerequisite) {
     foreach ($subjects as &$subject) {
@@ -52,5 +52,5 @@
     if (!$done) {
       echo "<p>" . $prerequisite . "</p>";
     }
-  }
+  }*/
 ?>
