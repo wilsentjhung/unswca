@@ -1,0 +1,8 @@
+.DS_Store
+assets/.DS_Store
+assets/css/.DS_Store
+assets/js/.DS_Store
+css/.DS_Store
+dist/.DS_Store
+img/.DS_Store
+inc/pgsql.php
