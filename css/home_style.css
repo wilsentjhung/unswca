@@ -1,4 +1,4 @@
-/* Style for the Bootstrap */
+/* Style for the Bootstrap --------------------------------------------------------------------- */
 body {
   padding-top: 50px;
 }
@@ -76,9 +76,19 @@ body {
   display: inline-block;
 }
 
-/* Custom style for this template */
+/* Custom style for this template -------------------------------------------------------------- */
 .reports-content {
   display: none;
+}
+
+.handbook-content {
+  display: none;
+}
+.handbookbtn {
+  font-size: 20px;
+  height: 50px;
+  padding: 10px;
+  width: 200px;
 }
 
 .advisor-content {
@@ -93,6 +103,7 @@ body {
 }
 
 .searchres {
+  background-color: white;
 	box-shadow: 0 0 5px #D2D2D2;
 	display: none;
 	font-size: 20px;
@@ -100,17 +111,19 @@ body {
 	overflow-x: hidden;
 	overflow-y: auto;
 	padding: 5px;
-	position: absolute;
-	width: 100%;
+  width: 100%;
 }
-.searchres a:hover {
+.searchres li:hover {
 	background-color: yellow;
 	text-decoration: none;
 }
-.searchres a:active {
+.searchres li:active {
 	background-color: blue;
 	color: white;
 	text-decoration: none;
+}
+.searchres a {
+  text-decoration: none;
 }
 
 .reslist {
