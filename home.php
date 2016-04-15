@@ -52,26 +52,48 @@
           <ul id="nav-sidebar" class="nav nav-sidebar">
             <li id="overview" class="active"><a href="#">Overview</a></li>
             <li id="report"><a href="#">Report</a></li>
+            <li id="handbook"><a href="#">Handbook</a></li>
             <li id="advisor"><a href="#">Advisor</a></li>
           </ul>
         </div>
 
         <!-- Overview content -->
-        <div id="overview-content" class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div id="overview-content" class="overview-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <?php include("inc/overview.php"); ?>
-          <script src="inc/overview.js"></script>
         </div>
 
         <!-- Report content -->
-        <div id="report-content" class="advisor-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div id="report-content" class="report-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <?php include("inc/report.php"); ?>
-          <script src="inc/report.js"></script>
+        </div>
+
+        <!-- Handbook content -->
+        <div id="handbook-content" class="handbook-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <?php include("inc/handbook.php"); ?>
         </div>
 
         <!-- Advisor content -->
         <div id="advisor-content" class="advisor-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <!-- echo "<div class='panel-group' id='accordion' role='tablist' aria-multiselectable='true'>";
+          echo "<div class='panel panel-default'>";
+          echo "<div class='panel-heading' role='tab' id='headingOne'>";
+          echo "<h2 class='panel-title'><a role='button' data-toggle='collapse' data-parent='#accordion' href='#collapseOne' aria-expanded='true' aria-controls='collapseOne'>Basic Information</a></h2>";
+          echo "</div>";
+
+          echo "<div id='collapseOne' class='panel-collapse collapse in' role='tabpanel' aria-labelledby='headingOne'>";
+          echo "<div class='panel-body'>";
+
+          echo "<div class='panel panel-default'>";
+          echo "<div class='panel-heading' role='tab' id='headingTwo'>";
+          echo "<h2 class='panel-title'><a class='collapsed' role='button' data-toggle='collapse' data-parent='#accordion' href='#collapseTwo' aria-expanded='false' aria-controls='collapseTwo'>Prerequisites for " . $stream . " Stream</h2>";
+          echo "</div>";
+
+          echo "<div id='collapseTwo' class='panel-collapse collapse' role='tabpanel' aria-labelledby='headingTwo'>";
+          echo "<div class='panel-body'>";
+
           <input id="searchinput" class="searchinput" type="text" placeholder="Search...">
-          <div id="searchres" class="searchres"></div>
+          <div id="searchres" class="searchres"></div> -->
+          <h2>TO BE COMPLETED</h2>
           <script src="inc/advisor.js"></script>
         </div>
       </div>
@@ -87,5 +109,7 @@
     <script src="assets/js/vendor/holder.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="assets/js/ie10-viewport-bug-workaround.js"></script>
+    <!-- Include Sortable -->
+    <script src="js/Sortable/Sortable.js"></script>
   </body>
 </html>

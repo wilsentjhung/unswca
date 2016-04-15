@@ -1,47 +1,85 @@
 <?php
   include("pgsql.php");
 
+  // Courses information --------------------------------------------------------------------------
   $index = 0;
   $subjects = array("");
-  $query = "SELECT p.id AS id, p.given_name AS given_name, p.family_name AS family_name,
-                   st.id AS stream_id, st.code AS stream_code,
-                   ce.student_id, ce.course_id, ce.mark AS mark, ce.grade AS grade,
-                   s.id AS subject_id, s.code AS subject_code, s.title AS subject_title,
-                   t.id AS term_id, t.code AS term_code, t.name AS term_name, t.ending AS term_ending
-            FROM   people p, stream_enrolments ste, streams st,
-                   course_enrolments ce, courses c, subjects s, terms t
-            WHERE  p.id = $login_session AND p.id = ste.student_id AND ste.stream_id = st.id AND
-                   p.id = ce.student_id AND ce.course_id = c.id AND
-                   c.subject_id = s.id AND c.term_id = t.id
-            GROUP BY s.id, t.id, ce.course_id, ce.student_id, st.id, p.id
-            ORDER BY term_ending, subject_code, subject_title";
+  $query = "SELECT tr.code AS tr_code, tr.title AS tr_title, tr.mark AS tr_mark, tr.grade AS tr_grade, tr.term AS tr_term,
+                   s.uoc AS s_uoc, t.id
+            FROM people p, transcript tr, subjects s, terms t
+            WHERE p.id = $login_session AND p.id = tr.student_id AND tr.code LIKE s.code AND tr.term LIKE t.code
+            ORDER BY t.id, tr.code";
   $result = pg_query($sims_db_connection, $query);
 
   echo "<h2>Courses</h2>";
-  echo "<div col-md-6'><table class='table table-striped'>";
-  echo "<thead><tr><th>#</th><th>Course</th><th>Course Title</th><th>Mark</th><th>Grade</th><th>Term</th></tr></thead>";
+  echo "<div><table class='table table-striped'>";
+  echo "<thead><tr><th>#</th><th>Course</th><th>Course Title</th><th>Mark</th><th>Grade</th><th>UOC</th><th>Term</th></tr></thead>";
   while ($rows = pg_fetch_array($result)) {
-    $subject = $rows["subject_code"] . " - " . $rows["term_code"];
-    if (!in_array($subject, $subjects)) {
-      $subjects[$index] = $subject;
-      echo "<tbody><tr>";
-      echo "<td>" . ($index+1) . "</td>";
-      echo "<td>" . $rows["subject_code"] . "</td>";
-      echo "<td>" . $rows["subject_title"] . "</td>";
-      echo "<td>" . $rows["mark"] . "</td>";
-      echo "<td>" . $rows["grade"] . "</td>";
-      echo "<td>" . $rows["term_code"] . "</td>";
-      echo "</tr></tbody>";
-      $index++;
-    }
+    $subjects[$index] = $rows["tr_code"] . " - " . $rows["tr_mark"] . " - " . $rows["tr_grade"] . " - " . $rows["s_uoc"] . " - " . $rows["tr_term"];
+    /*if ($rows["tr_mark"] == "" && $rows["tr_grade"] == "") {
+      echo "<tbody><tr class='active'>";
+    } else if ($rows["tr_mark"] < 50 && $rows["tr_grade"] != 'PC') {
+      echo "<tbody><tr class='warning'>";
+    } else {
+      echo "<tbody><tr class='success'>";
+    }*/
+    echo "<tbody><tr>";
+    echo "<td>" . ($index+1) . "</td>";
+    echo "<td>" . $rows["tr_code"] . "</td>";
+    echo "<td>" . $rows["tr_title"] . "</td>";
+    echo "<td>" . $rows["tr_mark"] . "</td>";
+    echo "<td>" . $rows["tr_grade"] . "</td>";
+    echo "<td>" . $rows["s_uoc"] . "</td>";
+    echo "<td>" . $rows["tr_term"] . "</td>";
+    echo "</tr></tbody>";
+    $index++;
   }
   echo "</table></div>";
 
-  /*echo "<h2>Remaining Prerequisites</h2>";
+  // Academic information -------------------------------------------------------------------------
+  $wam = 0;
+  $numerator = 0;
+  $totalUOC = 0;
+
+  foreach ($subjects as $subject) {
+    $subjectParams = explode(" - ", $subject);
+    $mark = $subjectParams[1];
+    $grade = $subjectParams[2];
+    $uoc = $subjectParams[3];
+
+    if ($mark != "" && $grade != "") {
+      $numerator += $mark * $uoc;
+      $totalUOC += $uoc;
+    }
+  }
+  $wam = number_format($numerator/$totalUOC, 3, ".", "");
+
+  echo "<h2>Academic Information</h2>";
+  echo "<div><table class='table table-striped'>";
+  echo "<tbody><tr>";
+  echo "<td><b>Total UOC</b></td><td>" . $totalUOC . "</td>";
+  echo "<td><b>UNSW WAM</b></td><td>" . $wam . "</td>";
+  echo "</tbody></tr>";
+  echo "</table></div>";
+
+  // Core requirements information ----------------------------------------------------------------
+  $index = 0;
   $done = false;
-  foreach ($prerequisites as &$prerequisite) {
-    foreach ($subjects as &$subject) {
-      if (strpos($prerequisite, $subject) === false) {
+
+  echo "<h2>Core Requirements</h2>";
+  echo "<div><table class='table table-striped'>";
+  echo "<thead><tr><th>#</th><th>Course</th><th>Title</th><th>Min</th></tr></thead>";
+  foreach ($prerequisites as $prerequisite) {
+    $prereqParams = explode(" - ", $prerequisite);
+    $prereqCode = $prereqParams[0];
+    $prereqTitle = $prereqParams[1];
+    $prereqMin = $prereqParams[3];
+
+    foreach ($subjects as $subject) {
+      $subjectParams = explode(" - ", $subject);
+      $subjectCode = $subjectParams[0];
+
+      if (stripos($prereqCode, $subjectCode) === false) {
         $done = false;
       } else {
         $done = true;
@@ -50,7 +88,18 @@
     }
 
     if (!$done) {
-      echo "<p>" . $prerequisite . "</p>";
+      if (stripos($prereqTitle, "core") !== false) {
+        echo "<tbody><tr>";
+        echo "<td>" . ($index+1) . "</td>";
+        echo "<td>" . $prereqCode . "</td>";
+        echo "<td>" . $prereqTitle . "</td>";
+        echo "<td>" . $prereqMin . "</td>";
+        echo "</tr></tbody>";
+        $index++;
+      }
     }
-  }*/
+  }
+  echo "</table></div>";
 ?>
+
+<script src="inc/report.js"></script>
