@@ -10,7 +10,7 @@
   // Basic information ----------------------------------------------------------------------------
   echo "<h2>Basic Information</h2>";
 
-  // Program information --------------------------------------------------------------------------
+  // Program(s)
   $index = 0;
   $programs = array("");
   $query = "SELECT p.id, pr.id, pr.code AS pr_code, pr.title AS pr_title, MAX(t.id)
@@ -19,14 +19,17 @@
             GROUP BY p.id, pr.id ORDER BY pr.id";
   $result = pg_query($sims_db_connection, $query);
 
-  echo "<b>Program(s): </b><br>";
+  echo "<div><table class='table table-striped'>";
+  echo "<tbody><tr>";
+  echo "<td><b>Program(s)</b></td>";
   while ($rows = pg_fetch_array($result)) {
     $programs[$index] = $rows["pr_code"];
-    echo $rows["pr_code"] . " - " . $rows["pr_title"] . "<br>";
+    echo "<td>" . $rows["pr_code"] . " - " . $rows["pr_title"] . "</td>";
     $index++;
   }
+  echo "</tbody></tr>";
 
-  // Stream information ---------------------------------------------------------------------------
+  // Stream(s)
   $index = 0;
   $career = "";
   $streams = array("");
@@ -36,15 +39,34 @@
             GROUP BY p.id, st.id ORDER BY st.id";
   $result = pg_query($sims_db_connection, $query);
 
-  echo "<br><b>Stream(s): </b><br>";
+  echo "<tbody><tr>";
+  echo "<td><b>Stream(s)</b></td>";
   while ($rows = pg_fetch_array($result)) {
     $career = $rows["st_career"];
     $streams[$index] = $rows["st_code"];
-    echo $rows["st_code"] . " - " . $rows["st_title"] . "<br>";
+    echo "<td>" . $rows["st_code"] . " - " . $rows["st_title"] . "</td>";
     $index++;
   }
+  echo "</tbody></tr>";
 
-  echo "<br><b>Career: </b>" . $career . "<br><br>";
+  // Career
+  echo "<tbody><tr>";
+  echo "<td><b>Career</b></td><td>" . $career . "</td>";
+  echo "</tbody></tr>";
+
+  // Term
+  $query = "SELECT p.id, t.code AS t_code, MIN(t.id)
+            FROM people p, stream_enrolments ste, terms t
+            WHERE p.id = $login_session AND p.id = ste.student_id AND ste.term_id = t.id
+            GROUP BY p.id, t.id ORDER BY t.id";
+  $result = pg_query($sims_db_connection, $query);
+  $rows = pg_fetch_array($result);
+
+  echo "<tbody><tr>";
+  echo "<td><b>Start Term</b></td><td>" . $rows["t_code"] . "</td>";
+  echo "</tbody></tr>";
+
+  echo "</table></div>";
 
   // Prerequisites information --------------------------------------------------------------------
   $index1 = 0;

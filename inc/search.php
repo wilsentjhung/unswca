@@ -53,7 +53,7 @@
 			$("#reslist").hide();
 			var type = <?php echo json_encode($type); ?>;
 			var output = <?php echo json_encode($output); ?>;
-			var index = this.id.charAt(3);
+			var index = this.id.substring(3, this.id.length);
 
 			if (output[index] != "") {
 				var outputParams = output[index].split(" - ");
@@ -77,7 +77,7 @@
 			if (e.keyCode == 13) {
 
 			} else if (e.keyCode == 38) {
-
+				
 			} else if (e.keyCode == 40) {
 
 			}

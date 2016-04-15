@@ -39,14 +39,28 @@
   // Academic information -------------------------------------------------------------------------
   $wam = 0;
   $numerator = 0;
-  $denominator = 0;
+  $totalUOC = 0;
 
-  echo "<h2>Academic Information</h2>";
   foreach ($subjects as $subject) {
     $subjectParams = explode(" - ", $subject);
-    $numerator += $subjectParams[1] * $subjectParams[3];
-    $denominator += $subjectParams[3];
+    $mark = $subjectParams[1];
+    $grade = $subjectParams[2];
+    $uoc = $subjectParams[3];
+
+    if ($mark != "" && $grade != "") {
+      $numerator += $mark * $uoc;
+      $totalUOC += $uoc;
+    }
   }
+  $wam = number_format($numerator/$totalUOC, 3, ".", "");
+
+  echo "<h2>Academic Information</h2>";
+  echo "<div><table class='table table-striped'>";
+  echo "<tbody><tr>";
+  echo "<td><b>Total UOC</b></td><td>" . $totalUOC . "</td>";
+  echo "<td><b>UNSW WAM</b></td><td>" . $wam . "</td>";
+  echo "</tbody></tr>";
+  echo "</table></div>";
 
   // Core requirements information ----------------------------------------------------------------
   $index = 0;

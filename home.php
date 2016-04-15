@@ -58,12 +58,12 @@
         </div>
 
         <!-- Overview content -->
-        <div id="overview-content" class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div id="overview-content" class="overview-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <?php include("inc/overview.php"); ?>
         </div>
 
         <!-- Report content -->
-        <div id="report-content" class="advisor-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div id="report-content" class="report-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <?php include("inc/report.php"); ?>
         </div>
 

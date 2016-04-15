@@ -1,5 +1,3 @@
-<h2></h2>
-
 <!-- Buttons to switch between course, stream or program -->
 <div id="handbookbtns" class="btn-group" data-toggle="buttons">
   <label class="handbookbtn btn btn-primary active">
@@ -15,8 +13,9 @@
 
 <!-- Search bar -->
 <input id="searchinput" class="searchinput" type="text" placeholder="Search...">
-<div id="searchres" class="searchres "></div>
+<div id="searchres" class="searchres"></div>
 
+<!-- Info results -->
 <div id="info" class="info"></div>
 
 <script src="inc/handbook.js"></script>
