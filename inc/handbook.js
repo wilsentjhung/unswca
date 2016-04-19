@@ -3,11 +3,11 @@ $(document).ready(function() {
     $("#handbook").addClass("active").siblings().removeClass("active");
     $("#overview-content").hide();
 		$("#report-content").hide();
-		$("#advisor-content").hide();
+		$("#planner-content").hide();
 		$("#handbook-content").show();
 
 		$("#searchinput").keyup(function() {
-      var input = $(this).val();
+      	var input = $(this).val();
 
   		if (input != "" && input.length > 3) {
   			$("#searchres").show();
