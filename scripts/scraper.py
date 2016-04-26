@@ -168,7 +168,7 @@ for hc in subjectCode:
 				#!!!
 				prereq = "(120_UOC && enrolment in a major in Indigenous Studies && enrolled in the final semester of an Arts Faculty)"
 			elif (codeInUrl[0] == "AVIA2013"):
-				prereq = "(18_UOC from either AVIA1401 || AVIA1901 || MATH1041 || PHYS1211)"
+				prereq = "((AVIA1401 && AVIA1901 && MATH1041) || (AVIA1401 && AVIA1901 && PHYS1211) || (AVIA1401 && MATH1041 && PHYS1211) || (AVIA1901 && MATH1041 && PHYS1211))"
 			elif (codeInUrl[0] == "AVIA3101"):
 				prereq = "(AVIA1900 || AVIA2004 || AVIA2014 || AVIA1901)"
 			elif (codeInUrl[0] == "AVIA3851"):
