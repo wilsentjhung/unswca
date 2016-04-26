@@ -53,7 +53,7 @@
             <li id="overview" class="active"><a href="#">Overview</a></li>
             <li id="report"><a href="#">Report</a></li>
             <li id="handbook"><a href="#">Handbook</a></li>
-            <li id="advisor"><a href="#">Advisor</a></li>
+            <li id="planner"><a href="#">Planner</a></li>
           </ul>
         </div>
 
@@ -73,7 +73,7 @@
         </div>
 
         <!-- Advisor content -->
-        <div id="advisor-content" class="advisor-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div id="planner-content" class="planner-content col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <!-- echo "<div class='panel-group' id='accordion' role='tablist' aria-multiselectable='true'>";
           echo "<div class='panel panel-default'>";
           echo "<div class='panel-heading' role='tab' id='headingOne'>";
@@ -93,8 +93,8 @@
 
           <input id="searchinput" class="searchinput" type="text" placeholder="Search...">
           <div id="searchres" class="searchres"></div> -->
-          <h2>TO BE COMPLETED</h2>
-          <script src="inc/advisor.js"></script>
+          <?php include ("inc/planner.php"); ?>
+          <script src="inc/planner.js"></script>
         </div>
       </div>
     </div>
