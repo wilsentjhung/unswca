@@ -19,29 +19,30 @@ prereqSentence = re.compile(r"<p>[pP]re.*?<\/p>")
 prereqOnlySentence = re.compile(r"<p>([pP]re.*?)([pP]requisite)?([cC]o-?[Rr]eq.*?)?([Ee]xcl.*?)?<\/p>")
 exclOnlySentence = re.compile(r"<p>[pP]re.*?([Ee]xcl.*?)<\/p>")
 
-f = open("pre_reqs.sql", "w")
+f = open("pre_reqsTest.sql", "w")
 f.write("DROP TABLE IF EXISTS pre_reqs;\n")
 f.write("CREATE TABLE pre_reqs (course_code text, career text, pre_req_conditions text, norm_pre_req_conditions text);\n")
 
-ugUrl = "http://www.handbook.unsw.edu.au/vbook2016/brCoursesByAtoZ.jsp?StudyLevel=Undergraduate&descr=All"
-ugHtml = urllib2.urlopen(ugUrl).read()
-subjectCodeWebsite = re.compile(r"http://www.handbook.unsw.edu.au/undergraduate/courses/2016/[A-Z]{4}[0-9]{4}\.html")
-subjectCode = re.findall(subjectCodeWebsite, ugHtml)
+#ugUrl = "http://www.handbook.unsw.edu.au/vbook2016/brCoursesByAtoZ.jsp?StudyLevel=Undergraduate&descr=All"
+#ugHtml = urllib2.urlopen(ugUrl).read()
+#subjectCodeWebsite = re.compile(r"http://www.handbook.unsw.edu.au/undergraduate/courses/2016/[A-Z]{4}[0-9]{4}\.html")
+#subjectCode = re.findall(subjectCodeWebsite, ugHtml)
 
-pgUrl = "http://www.handbook.unsw.edu.au/vbook2016/brCoursesByAtoZ.jsp?StudyLevel=Postgraduate&descr=All"
-pgHtml = urllib2.urlopen(pgUrl).read()
-subjectCodeWebsite = re.compile(r"http://www.handbook.unsw.edu.au/postgraduate/courses/2016/[A-Z]{4}[0-9]{4}\.html")
-subjectCode += re.findall(subjectCodeWebsite, pgHtml)
+#pgUrl = "http://www.handbook.unsw.edu.au/vbook2016/brCoursesByAtoZ.jsp?StudyLevel=Postgraduate&descr=All"
+#pgHtml = urllib2.urlopen(pgUrl).read()
+#subjectCodeWebsite = re.compile(r"http://www.handbook.unsw.edu.au/postgraduate/courses/2016/[A-Z]{4}[0-9]{4}\.html")
+#subjectCode += re.findall(subjectCodeWebsite, pgHtml)
 
-ugUrl = "http://www.handbook.unsw.edu.au/vbook2015/brCoursesByAtoZ.jsp?StudyLevel=Undergraduate&descr=All"
-ugHtml = urllib2.urlopen(ugUrl).read()
-subjectCodeWebsite = re.compile(r"http://www.handbook.unsw.edu.au/undergraduate/courses/2015/[A-Z]{4}[0-9]{4}\.html")
-subjectCode += re.findall(subjectCodeWebsite, ugHtml)
+#ugUrl = "http://www.handbook.unsw.edu.au/vbook2015/brCoursesByAtoZ.jsp?StudyLevel=Undergraduate&descr=All"
+#ugHtml = urllib2.urlopen(ugUrl).read()
+#subjectCodeWebsite = re.compile(r"http://www.handbook.unsw.edu.au/undergraduate/courses/2015/[A-Z]{4}[0-9]{4}\.html")
+#subjectCode += re.findall(subjectCodeWebsite, ugHtml)
 
 pgUrl = "http://www.handbook.unsw.edu.au/vbook2015/brCoursesByAtoZ.jsp?StudyLevel=Postgraduate&descr=All"
 pgHtml = urllib2.urlopen(pgUrl).read()
-subjectCodeWebsite = re.compile(r"http://www.handbook.unsw.edu.au/postgraduate/courses/2015/[A-Z]{4}[0-9]{4}\.html")
-subjectCode += re.findall(subjectCodeWebsite, pgHtml)
+subjectCodeWebsite = re.compile(r"http://www.handbook.unsw.edu.au/postgraduate/courses/2015/CHEN6706\.html")
+subjectCode = re.findall(subjectCodeWebsite, pgHtml)
+
 
 for hc in subjectCode:
 	career = "UG"
@@ -54,6 +55,7 @@ for hc in subjectCode:
 		codeInUrl = re.findall(codePattern, url2)
 		html2 = urllib2.urlopen(url2).read()
 		courseCode = re.findall(prereqSentence, html2)
+		print courseCode
 
 		if courseCode:
 			prereq = prereqOnlySentence.search(courseCode[0]).group(1)
@@ -118,7 +120,7 @@ for hc in subjectCode:
 			prereq = re.sub(r'\'', '\'\'', prereq, flags=re.IGNORECASE)
 			prereq = re.sub(r'^\s+$', '', prereq, flags=re.IGNORECASE)
 			#print prereq
-
+			print "auto done"
 
 			#manual
 			if (codeInUrl[0] == "ACCT2507"):
@@ -195,9 +197,9 @@ for hc in subjectCode:
 				prereq = "(144_UOC && 3052)"
 			elif (codeInUrl[0] == "BEES6741"):
 				prereq = "30_UOC_SCIENCE"
-			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0]) or re.match('BLDG', codeInUrl[0])) and re.match('\(96_UOC completed in Built Environment', prereq)):
+			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0]) or re.match('BLDG', codeInUrl[0])) and re.match('(96_UOC completed in Built Environment', prereq)):
 				prereq = "(96_UOC_BUILT_ENVIORNMENT)"
-			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0])) and re.match('\(96_UOC completed', prereq)):
+			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0])) and re.match('(96_UOC completed', prereq)):
 				prereq = "(96_UOC)"
 			elif (codeInUrl[0] == "BINF4910"):
 				prereq = "(126 UOC && (3647 || 3755 || 3756 || 3757 || 3715))"
@@ -221,9 +223,12 @@ for hc in subjectCode:
 				prereq = "((ANAT2111 || ANAT1521 || ANAT2511{CR} || ANAT1551) && PROGRAM_WAM_50)"
 			elif (codeInUrl[0] == "CEIC2004"):
 				prereq = "(CHEM1021 || CHEM1041 || CEIC1001)"
-			elif ((re.match('CEIC', codeInUrl[0]) or re.match('CHEM', codeInUrl[0]) or re.match('CHEN', codeInUrl[0])) and re.match('\(at least 144 Units', prereq)):
-				prereq = "(144_UOC_CHEMICAL_ENGINEERING || 144_UOC_INDUSTRIAL_CHEMICAL"
-			elif (codeInUrl[0] == "CEIC6005"):
+			else:
+			    print "pre"
+			    if ((re.match('CEIC', codeInUrl[0]) or re.match('CHEM', codeInUrl[0]) or re.match('CHEN', codeInUrl[0])) and re.match('\(at least 144 Units', prereq)):
+				    print "attempt"
+				    prereq = "(144_UOC_CHEMICAL_ENGINEERING || 144_UOC_INDUSTRIAL_CHEMICAL"
+			if (codeInUrl[0] == "CEIC6005"):
 				prereq = "((MATS1101 || CHEM1011 || CHEM1021) && CEIC2000 && CEIC2002)"
 			elif (codeInUrl[0] == "CHEM1041"):
 				prereq = "(CHEM1031 || CHEM1011{CR})"
