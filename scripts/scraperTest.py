@@ -197,9 +197,9 @@ for hc in subjectCode:
 				prereq = "(144_UOC && 3052)"
 			elif (codeInUrl[0] == "BEES6741"):
 				prereq = "30_UOC_SCIENCE"
-			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0]) or re.match('BLDG', codeInUrl[0])) and re.match('(96_UOC completed in Built Environment', prereq)):
+			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0]) or re.match('BLDG', codeInUrl[0])) and re.match('\(96_UOC completed in Built Environment', prereq)):
 				prereq = "(96_UOC_BUILT_ENVIORNMENT)"
-			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0])) and re.match('(96_UOC completed', prereq)):
+			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0])) and re.match('\(96_UOC completed', prereq)):
 				prereq = "(96_UOC)"
 			elif (codeInUrl[0] == "BINF4910"):
 				prereq = "(126 UOC && (3647 || 3755 || 3756 || 3757 || 3715))"

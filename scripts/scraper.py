@@ -13,6 +13,8 @@ import re
 #find a specific course to show the full length conditions
 #select * from pre_reqs where course_code like '%COMP4930%';
 
+#select course_code, career, left(pre_req_conditions,90) as c, left(norm_pre_req_conditions,85)  from pre_reqs  where course_code > 'ECON5000' order by course_code;
+
 allCourseCode = set()
 codePattern = re.compile(r"[A-Z]{4}[0-9]{4}")
 prereqSentence = re.compile(r"<p>[pP]re.*?<\/p>")
@@ -126,7 +128,12 @@ for hc in subjectCode:
 			elif (codeInUrl[0] == "ACCT4794" or codeInUrl[0] == "ACCT4809" or codeInUrl[0] == "ACCT4851" or
 				codeInUrl[0] == "ACCT4852" or codeInUrl[0] == "ACCT4897"):
 				#!!!
-				prereq = "Admission to Honours level majoring in Accounting."
+				prereq = "(ACCOUNTING_HONOURS)"
+			elif (codeInUrl[0] == "ACCT5919" or codeInUrl[0] == "ACCT5996"):
+				#actually can be a coreq
+				prereq = "(ACCT5930 || COMM5003 || ACCT5906)"
+			elif (codeInUrl[0] == "ACCT5967"):
+				prereq = "(ACCT5997)"
 			elif (codeInUrl[0] == "ACTL1101"):
 				prereq = "(MATH1151 && (3586 || 3587 || 3588 || 3589 || 3155 || 3154 || 4737))"
 			elif (codeInUrl[0] == "ACTL2102"):
@@ -135,10 +142,22 @@ for hc in subjectCode:
 				prereq = "(ACTL2102 || (MATH2901 && (MATHR13986 || MATHR13523 || MATHR13564 || MATHR13956 || MATHR13589 || MATHR13761 || MATHR13946 || MATHR13949 || MATHR13998)))"
 			elif (codeInUrl[0] == "ACTL4000" or codeInUrl[0] == "ACTL4003"):
 				#!!!
-				prereq = "Admission to BCom Hons in Actuarial Studies"
+				prereq = "(ACTUARIAL_HONOURS)"
 			elif (codeInUrl[0] == "ACTL4002"):
 				#????
 				prereq = "???"
+			elif (codeInUrl[0] == "ACTL4303"):
+				#needs coreq/another way
+				prereq = "(ACTL3141)"
+			elif (codeInUrl[0] == "ACTL5103" or codeInUrl[0] == "ACTL5104" or codeInUrl[0] == "ACTL5106"):
+				prereq = "(ACTL5101 && (8411 || 8416))"
+			elif (codeInUrl[0] == "ACTL5105" or codeInUrl[0] == "ACTL5109"):
+				#needs coreq for 5109
+				prereq = "(ACTL5101 && ACTL5102 && (8411 || 8416))"
+			#ACTL5200 needs coreq
+			elif (codeInUrl[0] == "ACTL5401"):
+				prereq = "(7273 || 5273 || 9273 || SCHOOL_APPROVAL)"
+			#AERO3640 needs coreq
 			elif (codeInUrl[0] == "ANAT2111"):
 				prereq = "(BABS1201 && (ANAT2241 || BABS1202 || BABS2202 || BABS2204 || BIOC2201 || BIOC2291 || BIOS1101 || HESC1501 || PHSL2101 || PHSL2121 || PHSL2501 || VISN1101))"
 			elif (codeInUrl[0] == "ANAT2241"):
@@ -149,8 +168,12 @@ for hc in subjectCode:
 				prereq = "(ARCH1202 && ARCH1301)"
 			elif (codeInUrl[0] ==  "ARCH1395"):
 				prereq = "(ARCH1394 && ARCH1384)"
+			elif (codeInUrl[0] == "ARTS1006"):
+				prereq = "(ARTS1005{CR})"
 			elif (codeInUrl[0] == "ARTS2006"):
 				prereq = "(MUSC1704 || MUSC1705 || MUSC1706 || ARTS1005 || 3425 || 3426 || 3427 || 3448 || 3449)"
+			elif (codeInUrl[0] == "ARTS2007"):
+				prereq = "(30_UOC_LEVEL_1 && ARTS1005)"
 			elif (codeInUrl[0] == "ARTS2038"):
 				prereq = "(30_UOC && 12_UOC_LEVEL_1_ENGLISH)"
 			elif (codeInUrl[0] == "ARTS2050"):
@@ -158,6 +181,8 @@ for hc in subjectCode:
 				prereq = "(12_UOC_LEVEL_1 && (enrolment in an Arts and Social Sciences || Art and Design program))"
 			elif (codeInUrl[0] == "ARTS2065"):
 				prereq = "(30_UOC_LEVEL_1 && (ARTS1060 || ARTS1062))"
+			elif (codeInUrl[0] == "ARTS2195"):
+				prereq = "(30_UOC at Level 1 && (ARTS1190 || ARTS1270 || ARTS1900))"
 			elif (codeInUrl[0] == "ARTS2452"):
 				#???
 				prereq = "(ARTS3451 || ARTS3452 || ARTS3453)"
@@ -165,7 +190,7 @@ for hc in subjectCode:
 				or codeInUrl[0] == "ARTS2694" or codeInUrl[0] == "ARTS2696"):
 				prereq = "(30_UOC && 12_UOC_LEVEL_1_LINGUISTICS)"
 
-			##ARTS[34]### skipped
+			##ARTS[345]### skipped
 			elif (codeInUrl[0] == "ATSI3008"):
 				#!!!
 				prereq = "(120_UOC && enrolment in a major in Indigenous Studies && enrolled in the final semester of an Arts Faculty)"
@@ -175,13 +200,14 @@ for hc in subjectCode:
 				prereq = "(AVIA1900 || AVIA2004 || AVIA2014 || AVIA1901)"
 			elif (codeInUrl[0] == "AVIA3851"):
 				prereq = "(AVIA1850 || AVIA2701)"
+			#AVIG5911. pass flight screening
 			elif (codeInUrl[0] == "BABS2011"):
 				#!!!
 				prereq = "(BABS1201 || BABS1202 && enrolment in relevant Science program)"
 			elif (codeInUrl[0] == "BABS2202"):
 				prereq = "(BABS1201 && (CHEM1011 || CHEM1031))"
 			elif (codeInUrl[0] == "BABS3021"):
-				prereq = "(12_UOC from MICR2011 || BIOS2021 || BABS2204 || BIOS2621 || BABS2264 || BIOC2201)"
+				prereq = "((MICR2011 && BIOS2021) || (MICR2011 && BABS2204) || (MICR2011 && BIOS2621) || (MICR2011 && BABS2264) || (MICR2011 && BIOC2201) || (BIOS2021 && BABS2204) || (BIOS2021 && BIOS2621) || (BIOS2021 && BABS2264) || (BIOS2021 && BIOC2201) || (BABS2204 && BIOS2621) || (BABS2204 && BABS2264) || (BABS2204 && BIOC2201) || (BIOS2621 && BABS2264) || (BIOS2621 && BIOC2201) || (BABS2264 && BIOC2201)"
 
 			elif (codeInUrl[0] == "BABS3631" or codeInUrl[0] == "BABS3031"):
 				prereq = "(48_UOC)"
@@ -193,14 +219,17 @@ for hc in subjectCode:
 				prereq = "(BIOC2101 && BIOC2201 && (3985 || 3990 || 3972 || 3973 || 3986 || 3931 || 3936))"
 			elif (codeInUrl[0] == "BABS4053"):
 				prereq = "(144_UOC && 3052)"
-			elif (codeInUrl[0] == "BEES6741"):
-				prereq = "30_UOC_SCIENCE"
-			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0]) or re.match('BLDG', codeInUrl[0])) and re.match('\(96_UOC completed in Built Environment', prereq)):
+			elif (codeInUrl[0] == "BABS6741" and career == "UG"):
+				prereq = "(30_UOC_SCIENCE)"
+			elif (codeInUrl[0] == "BEES6741" and career == "UG"):
+				prereq = "(30_UOC_SCIENCE)"
+			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0]) or re.match('BLDG', codeInUrl[0]) or re.match('BENV', codeInUrl[0])) and re.match('\(96_UOC completed in Built Environment', prereq) and career == "UG"):
 				prereq = "(96_UOC_BUILT_ENVIORNMENT)"
-			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0])) and re.match('\(96_UOC completed', prereq)):
+			elif ((re.match('BEIL', codeInUrl[0]) or re.match('BEIL', codeInUrl[0]) or re.match('BENV', codeInUrl[0])) and re.match('\(96_UOC completed', prereq) and career == "UG"):
 				prereq = "(96_UOC)"
+
 			elif (codeInUrl[0] == "BINF4910"):
-				prereq = "(126 UOC && (3647 || 3755 || 3756 || 3757 || 3715))"
+				prereq = "(126_UOC && (3647 || 3755 || 3756 || 3757 || 3715))"
 			elif (codeInUrl[0] == "BINF4920"):
 				prereq = "(3647 || 3755 || 3756 || 3757 || 3715)"
 			elif (codeInUrl[0] == "BIOC2101" or codeInUrl[0] == "BIOC2201"):
@@ -221,8 +250,8 @@ for hc in subjectCode:
 				prereq = "((ANAT2111 || ANAT1521 || ANAT2511{CR} || ANAT1551) && PROGRAM_WAM_50)"
 			elif (codeInUrl[0] == "CEIC2004"):
 				prereq = "(CHEM1021 || CHEM1041 || CEIC1001)"
-			elif ((re.match('CEIC', codeInUrl[0]) or re.match('CHEM', codeInUrl[0]) or re.match('CHEN', codeInUrl[0])) and re.match('\(at least 144 Units', prereq)):
-				prereq = "(144_UOC_CHEMICAL_ENGINEERING || 144_UOC_INDUSTRIAL_CHEMICAL"
+			elif ((re.match('CEIC', codeInUrl[0]) or re.match('CHEM', codeInUrl[0]) or re.match('CHEN', codeInUrl[0])) and re.match('\(at least 144 Units', prereq) and career == "UG"):
+				prereq = "(144_UOC_CHEMICAL_ENGINEERING || 144_UOC_INDUSTRIAL_CHEMICAL)"
 			elif (codeInUrl[0] == "CEIC6005"):
 				prereq = "((MATS1101 || CHEM1011 || CHEM1021) && CEIC2000 && CEIC2002)"
 			elif (codeInUrl[0] == "CHEM1041"):
@@ -245,6 +274,14 @@ for hc in subjectCode:
 			elif (codeInUrl[0] == "CODE3100"):
 				#!!!
 				prereq = "(year 1 && 2 core courses)"
+			#COMD5004
+			elif (codeInUrl[0] == "COMM5002"):
+				#can be a coreq
+				prereq = "(COMM5001)"
+			elif (codeInUrl[0] == "COMM5004"):
+				prereq = "(COMM5001 && COMM5002 && COMM5003 && (8404 || 8417) && 48_UOC)"
+			elif (codeInUrl[0] == "COMM5008"):
+				prereq = "(8417 || 8404 || 8415)"
 			elif (codeInUrl[0] == "COMP1400" or codeInUrl[0] == "COMP1911"):
 				#!!!
 				prereq = "!(CSE_PROGRAM)"
@@ -257,43 +294,63 @@ for hc in subjectCode:
 				prereq = "(((COMP1921 || COMP1927) && (COMP2121 || ELEC2142)) || (COMP1921 || COMP1927))"
 			elif (codeInUrl[0] == "COMP3431"):
 				prereq = "(COMP2911 && 70_WAM)"
-			elif (codeInUrl[0] == "COMP3441" or codeInUrl[0] == "COMP3511"):
-				prereq = "48_UOC"
+			elif (codeInUrl[0] == "COMP3441" or codeInUrl[0] == "COMP3511" or (codeInUrl[0] == "COMP4161" and career == "UG")):
+				prereq = "(48_UOC)"
 			elif (codeInUrl[0] == "COMP3821"):
 				prereq = "(COMP1927 || COMP1921{70})"
 			elif (codeInUrl[0] == "COMP3891"):
 				prereq = "((COMP1921{70} || COMP1927) && (COMP2121{70} || ELEC2142))"
 			elif (codeInUrl[0] == "COMP3901" or codeInUrl[0] == "COMP3902"):
 				#!!!!
-				prereq = "80_CSE_WAM"
+				prereq = "(80_CSE_WAM)"
 			elif (codeInUrl[0] == "COMP4411"):
 				prereq = "(75_WAM && COMP1927)"
-			elif (codeInUrl[0] == "COMP4431"):
+			elif (codeInUrl[0] == "COMP4431" and career == "UG"):
 				#!!!
 				prereq = "(COMP1927 || (Stage_2{3267 || 3994 || 3402 || 3428 || 4810 || 4802}))"
+
+			elif (codeInUrl[0] == "COMP4904"):
+				prereq = "(72_UOC_COMPUTER_SCIENCE_CO_OP)"
 			elif (codeInUrl[0] == "COMP4910"):
 				#!!!
-				prereq = "Honours"
+				prereq = "(COMPUTER_SCIENCE_HONOURS)"
 			elif (codeInUrl[0] == "COMP4920"):
 				#!!!
-				prereq = "Stage_2"
+				prereq = "(CSE_STAGE_2)"
 			elif (codeInUrl[0] == "COMP4930"):
 				#!!!
 				prereq = "(4515 || 126_UOC_CSE)"
 			elif (codeInUrl[0] == "COMP4941"):
 				#!!!
-				prereq = "(COMP4930 && (75_WAM || Honours))"
-			elif (codeInUrl[0] == "COMP6721"):
+				prereq = "(COMP4930 && (75_WAM || COMPUTER_SCIENCE_HONOURS))"
+			elif (codeInUrl[0] == "COMP6721" and career == "UG"):
 				prereq = "((MATH1081 || 6_UOC_MATH2###) && 12_UOC_COMP3###)"
 			elif (codeInUrl[0] == "COMP6733"):
 				prereq = "(65_WAM && COMP3331)"
-			elif (codeInUrl[0] == "COMP9018"):
-				prereq = "COMP3421{65}"
-			elif (codeInUrl[0] == "COMP9242"):
+			elif (codeInUrl[0] == "COMP9018" and career == "UG"):
+				prereq = "(COMP3421{65})"
+			elif (codeInUrl[0] == "COMP9018" and career == "PG"):
+				prereq = "(COMP9415{65})"
+			elif (codeInUrl[0] == "COMP9242" and career == "UG"):
 				prereq = "(COMP3231{75} || COMP3891)"
-			elif (codeInUrl[0] == "COMP9844"):
+			elif (codeInUrl[0] == "COMP9242" and career == "PG"):
+				prereq = "(COMP9201{75} || COMP9283)"
+
+			elif (codeInUrl[0] == "COMP9283"):
+				prereq = "(COMP9032{70} && COMP9024)"
+			#COMP9321 has coreq for postgrad
+			elif (codeInUrl[0] == "COMP9321" and career == "PG"):
+				prereq = "(COMP9024)"
+			elif (codeInUrl[0] == "COMP9431"):
+				prereq = "(70_WAM && COMP9024)"
+			elif (codeInUrl[0] == "COMP9801"):
+				prereq = "(COMP9024{70})"
+
+			elif (codeInUrl[0] == "COMP9844" and career == "UG"):
 				prereq = "(70_WAM && (COMP1927 || MTRN3500))"
-			elif (codeInUrl[0] == "CRIM2014" or codeInUrl[0] == "CRIM2031" or codeInUrl[0] == "CRIM2032" or codeInUrl[0] == "CRIM2034" or codeInUrl[0] == "CRIM2036"):
+			elif (codeInUrl[0] == "COMP9844" and career == "PG"):
+				prereq = "(70_WAM && COMP9024)"
+			elif (codeInUrl[0] == "CRIM2014" or codeInUrl[0] == "CRIM2031" or codeInUrl[0] == "CRIM2032" or codeInUrl[0] == "CRIM2034" or codeInUrl[0] == "CRIM2036" or codeInUrl[0] == "CRIM2037" or codeInUrl[0] == "CRIM2038"):
 				prereq = "(30_UOC_LEVEL_1_CRIMINOLOGY && (CRIM1010 || CRIM1011))"
 			elif (codeInUrl[0] == "CRIM2020"):
 				prereq = "(24_UOC_LEVEL_1_CRIMINOLOGY && CRIM1010 && CRIM1011)"
@@ -304,7 +361,7 @@ for hc in subjectCode:
 				#CRIM3### skipped
 			elif (re.match('CRIM4', codeInUrl[0])):
 				prereq = "(CRIMINOLOGY_HONOURS)"
-				#continue with cven
+				#CRIM5### skipped
 			elif (codeInUrl[0] == "CVEN4002" or codeInUrl[0] == "CVEN4003" or codeInUrl[0] == "CVEN4050"):
 				prereq = "(132_UOC)"
 			elif (codeInUrl[0] == "CVEN4030"):
