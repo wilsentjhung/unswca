@@ -13,7 +13,7 @@ import re
 #find a specific course to show the full length conditions
 #select * from pre_reqs where course_code like '%COMP4930%';
 
-#select course_code, career, left(pre_req_conditions,90) as c, left(norm_pre_req_conditions,85)  from pre_reqs  where course_code > 'ECON5000' order by course_code;
+#select course_code, career, left(pre_req_conditions,90) as c, left(norm_pre_req_conditions,85)  from pre_reqs  where course_code > 'INFS5000' order by course_code;
 
 allCourseCode = set()
 codePattern = re.compile(r"[A-Z]{4}[0-9]{4}")
@@ -374,6 +374,20 @@ for hc in subjectCode:
 				prereq = "(ECON2101 || ECON2103 || 48_UOC_ARTS_SOCIAL_SCIENCES)"
 			elif (codeInUrl[0] == "ECON3114" or codeInUrl[0] == "ECON3117"):
 				prereq = "(ECON2101 || ACTL2131 || ACTL2111 || (84_UOC && (3155 || 3502 || 3554 || 4501 || 3558 || 3593 || 3835 || 3967 || 3568 || 3567 || 3584 || 4733 || 3522 || 3521 || 3462 || 3559 || 3529 || 3764 || 3136)"
+			elif (codeInUrl[0] == "ECON5257"):
+				prereq = "(8409 || 8415)"
+			elif (re.match('ECON5', codeInUrl[0]) and re.match('\(7412 || approval', prereq)):
+				prereq = "(7412 || SCHOOL_APPROVAL)"
+			elif (re.match('ECON6', codeInUrl[0]) and re.match('\(8412 || approval', prereq)):
+				prereq = "(8412 || SCHOOL_APPROVAL)"
+			elif (codeInUrl[0] == "ECON6205"):
+				prereq = "(ECON6003 || SCHOOL_APPROVAL)"
+			elif (codeInUrl[0] == "ECON6301" or codeInUrl[0] == "ECON6302" or codeInUrl[0] == "ECON6303" or codeInUrl[0] == "ECON6307"):
+				#it's a coreq as well
+				prereq = "(ECON6001)"
+			elif (codeInUrl[0] == "ECON6350"):
+				#it's a coreq as well
+				prereq = "(ECON6001 && ECON6002 && ECON6003 && ECON6004)"
 			elif (codeInUrl[0] == "EDST2002"):
 				prereq = "(48_UOC_LEVEL_1 && EDST1101 && EDST1104 && EDST2003 && (3446 || 3462 || 4054 || 4076 || 4058 || 4059 || 4061 || 4062))"
 			elif (codeInUrl[0] == "EDST2003"):
@@ -382,23 +396,67 @@ for hc in subjectCode:
 				#prereq = "24_UOC_LEVEL_1"
 				#EDST skipped
 			elif (re.match('ELEC', codeInUrl[0])):
-				prereq.upper()
+				prereq = prereq.upper()
 				if (codeInUrl[0] == "ELEC2142"):
 					prereq = "(ELEC2141 && COMP1921)"
 
-			#FINS2622 FINS4774 FINS4776 FINS4777 FINS4779 needs a special check
+			elif (codeInUrl[0] == "FINS2622"):
+				#also a coreq
+				prereq = "(FINS1612 && FINS2624)"
 			elif (codeInUrl[0] == "FINS3202"):
 				prereq = "(FINS2101 && (FINSD13554 || FINSBH3565))"
 			elif (codeInUrl[0] == "FINS3303"):
 				prereq = "(FINS3202 && (FINSD13554 || FINSBH3565))"
 			elif (codeInUrl[0] == "FINS3775" or codeInUrl[0] == "FINS4775"):
 				prereq = "(FINS2624{70} && ECON1203)"
+			elif (codeInUrl[0] == "FINS4774" or codeInUrl[0] == "FINS4776" or codeInUrl[0] == "FINS4777" or codeInUrl[0] == "FINS4779"):
+				#also a coreq
+				prereq = "(FINS3775 || FINS4775)"
 			elif (codeInUrl[0] == "FINS4781"):
-				prereq = "FINANCE_HONOURS"
+				prereq = "(FINANCE_HONOURS)"
+			elif (codeInUrl[0] == "FINS5511"):
+				#also a coreq
+				prereq = "(ACCT5930 && ECON5103)"
+			elif (codeInUrl[0] == "FINS5512"):
+				#also a coreq
+				prereq = "(ACCT5906 || ECON5103 || 9273 || 5273 || 7273 || 8007)"
+			elif (codeInUrl[0] == "FINS5513"):
+				prereq = "(COMM5005 || ECON5248 || COMM5011 || 5273 || 7273 || 8413 || 9273 || (REST0001 && 8127))"
+			elif (codeInUrl[0] == "FINS5514" or codeInUrl[0] == "FINS5517"):
+				#also a coreq
+				prereq = "(FINS5513)"
+			elif (codeInUrl[0] == "FINS5516" or codeInUrl[0] == "FINS5530" or codeInUrl[0] == "FINS5531" or codeInUrl[0] == "FINS5542"):
+				#also a coreq
+				prereq = "(FINS5513 || 8406)"
+			elif (codeInUrl[0] == "FINS5522"):
+				#also a coreq
+				prereq = "((FINS5512 and FINS5513) || 8406)"
+			elif (codeInUrl[0] == "FINS5533"):
+				#also a coreq
+				prereq = "(FINS5513 || FINS5561 || 8406)"
+			elif (codeInUrl[0] == "FINS5543"):
+				prereq = "(7273 || 5273 || 9273)"
+			elif (codeInUrl[0] == "FINS5566"):
+				#also a coreq
+				prereq = "(FINS5512 || 8406 || 8413)"
+			elif (codeInUrl[0] == "FINS5568"):
+				prereq = "(FINS5513 && (8404 || 8417 || 8428) && 48_UOC)"
+			elif (codeInUrl[0] == "FINS5579"):
+				#also a coreq
+				prereq = "(FINS3775 || FINS4775 || FINS5575)"
+
 			elif (codeInUrl[0] == "FOOD6804"):
 				prereq = "(CHEM3811 || INDC2003)"
+
+			elif (codeInUrl[0] == "GBAT9104" or codeInUrl[0] == "GBAT9113"):
+				prereq = "((8616 && 48_UOC) || (5457 && 36_UOC))"
+			elif (re.match('GBAT', codeInUrl[0]) and re.match('\(', prereq)):
+				prereq = "(8616 || 7333 || 5457)"
 			elif (codeInUrl[0] == "GEOL4141"):
 				prereq = "(24_UOC_LEVEL_3_GEOLOGY || 24_UOC_LEVEL_3_PHYSICAL_GEOGRAPHY)"
+			elif (codeInUrl[0] == "GEOS2101"):
+				#!!!
+				prereq = "(GEOL1111 || GEOS1111 || GEOL1211 || GEOS1211 || GEOS1701 || BIOS1101)"
 			elif (codeInUrl[0] == "GEOS3371"):
 				prereq = "(GEOS3331 && LEVEL_3_GEOSCIENCE)"
 			elif (codeInUrl[0] == "GEOS3621"):
@@ -413,7 +471,7 @@ for hc in subjectCode:
 				prereq = "(HESC2501 && HESC1511 && (PSYC1011 || HESC1531))"
 			elif (codeInUrl[0] == "HESC3541"):
 				prereq = "(HESC2501 && PHSL2502 && (PATH2202 || PATH2201) && PHSL2501)"
-			elif (codeInUrl[0] == "IDES4321"):
+			elif (codeInUrl[0] == "IDES4321" or codeInUrl[0] == "IDES4372"):
 				prereq = "(96_UOC_BUILT_ENVIRONMENT)"
 			elif (codeInUrl[0] == "INDC2003"):
 				prereq = "((CHEM1021 || CHEM1041) || CEIC1001)"
@@ -427,6 +485,8 @@ for hc in subjectCode:
 				prereq = "(INFS1602 && 72_UOC)"
 			elif (codeInUrl[0] == "INFS3605"):
 				prereq = "(INFS2603 && INFS2605 && 72_UOC)"
+			elif (codeInUrl[0] == "INFS3608"):
+				prereq = "((INFS1602 && INFS1603) || SOFTWARE_ENGINEERING_PROGRAM)"
 			elif (codeInUrl[0] == "INFS3611"):
 				prereq = "(INFS2603 && (INFS1609 || INFS2609) && 72_UOC)"
 			elif (codeInUrl[0] == "INFS3634"):
@@ -540,7 +600,6 @@ for hc in subjectCode:
 			#MUSC skipped
 			elif (codeInUrl[0] == "NANO3002"):
 				prereq = "(NANO2002 || SCHOOL_APPROVAL)"
-			#start from NEUR2201 
 			elif (codeInUrl[0] == "NEUR2201"):
 				prereq = "(12_UOC_BABS_BIOS || 12_UOC_PSYC)"
 			elif (codeInUrl[0] == "OPTM4211" or codeInUrl[0] == "OPTM4271"):
