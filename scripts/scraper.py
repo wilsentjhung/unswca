@@ -19,11 +19,16 @@ allCourseCode = set()
 codePattern = re.compile(r"[A-Z]{4}[0-9]{4}")
 prereqSentence = re.compile(r"<p>[pP]re.*?<\/p>")
 prereqOnlySentence = re.compile(r"<p>([pP]re.*?)([pP]requisite)?([cC]o-?[Rr]eq.*?)?([Ee]xcl.*?)?<\/p>")
+coreqSentence = re.compile(r"<p>([cC]o.*?)<\/p>")
 exclOnlySentence = re.compile(r"<p>[pP]re.*?([Ee]xcl.*?)<\/p>")
 
 f = open("pre_reqs.sql", "w")
 f.write("DROP TABLE IF EXISTS pre_reqs;\n")
 f.write("CREATE TABLE pre_reqs (course_code text, career text, pre_req_conditions text, norm_pre_req_conditions text);\n")
+
+g = open("co_reqs.sql", "w")
+g.write("DROP TABLE IF EXISTS co_reqs;\n")
+g.write("CREATE TABLE co_reqs (course_code text, career text, co_req_conditions text, norm_co_req_conditions text);\n")
 
 ugUrl = "http://www.handbook.unsw.edu.au/vbook2016/brCoursesByAtoZ.jsp?StudyLevel=Undergraduate&descr=All"
 ugHtml = urllib2.urlopen(ugUrl).read()
@@ -56,6 +61,7 @@ for hc in subjectCode:
 		codeInUrl = re.findall(codePattern, url2)
 		html2 = urllib2.urlopen(url2).read()
 		courseCode = re.findall(prereqSentence, html2)
+		courseCode2 = re.findall(coreqSentence, html2)
 
 		if courseCode:
 			prereq = prereqOnlySentence.search(courseCode[0]).group(1)
@@ -678,6 +684,14 @@ for hc in subjectCode:
 				prereq = "(12_UOC_BABS_BIOS || 12_UOC_PSYC)"
 			elif (codeInUrl[0] == "OPTM4211" or codeInUrl[0] == "OPTM4271"):
 				prereq = "(OPTM4110 && OPTM4131 && OPTM4151)"
+			elif (codeInUrl[0] == "OPTM7203"):
+				prereq = "(OPTM7103 && (8760 || 5665 || 7435))"
+			elif (codeInUrl[0] == "OPTM7205"):
+				prereq = "(OPTM7104 && (8760 || 5665 || 7435 || 5523))"
+			elif (codeInUrl[0] == "OPTM7213"):
+				prereq = "(7436)"
+			elif (codeInUrl[0] == "OPTM7301"):
+				prereq = "(OPTM7309 && (8760 || 5665 || 7435))"
 			elif (codeInUrl[0] == "PATH2201"):
 				prereq = "(ANAT2241 && (ANAT2111 || ANAT1521 || PHSL2101 || BIOC2101 || BIOC2181))"
 			elif (codeInUrl[0] == "PATH3207"):
@@ -686,6 +700,8 @@ for hc in subjectCode:
 				prereq = "(6_UOC_LEVEL_1_BABS_BIOS && (3992 || PHSL2101) && 12_UOC_LEVEL_1_CHEM && 6_UOC_LEVEL_1_MATH)"
 			elif (codeInUrl[0] == "PHAR3101" or codeInUrl[0] == "PHAR3102" or codeInUrl[0] == "PHAR3251"):
 				prereq = "(PHAR2011 || PHAR2211)"
+			elif (re.match('PHCM9', codeInUrl[0]) and re.match('\(Student', prereq)):
+				prereq = "(MEDICINE_POSTGRADUATE)"
 			elif (codeInUrl[0] == "PHSL2101"):
 				prereq = "(6_UOC_LEVEL_1_BABS_BIOS && 6_UOC_LEVEL_1_CHEM && 6_UOC_LEVEL_1_MATH)"
 			elif (codeInUrl[0] == "PHSL2201"):
@@ -704,6 +720,10 @@ for hc in subjectCode:
 				prereq = "((PHYS1002 || PHYS1022 || PHYS1111 || PHYS1221 || PHYS1231 || PHYS1241) && (MATH1021 || MATH1131 || MATH1141 || MATH1031))"
 			elif (codeInUrl[0] == "PHYS2060"):
 				prereq = "((PHYS1002 || PHYS1022 || PHYS1111 || PHYS1221 || PHYS1231 || PHYS1241) && (MATH1021 || MATH1131 || MATH1141 || MATH1031))"
+			elif (codeInUrl[0] == "PHYS2110" or codeInUrl[0] == "PHYS2120"):
+				prereq = "((PHYS1221 || PHYS1231 || PHYS1241) && (MATH1231 || MATH1241))"
+			elif (codeInUrl[0] == "PHYS2210"):
+				prereq = "((PHYS1221 || PHYS1231 || PHYS1241) && (MATH2011 || MATH2111))"
 			elif (codeInUrl[0] == "PHYS3011"):
 				prereq = "(((PHYS2040 && PHYS2050) || (PHYS2110 && PHYS2210)) && (MATH2221 || MATH2121) && (MATH2011 || MATH2111))"
 			elif (codeInUrl[0] == "PHYS3021"):
@@ -722,14 +742,34 @@ for hc in subjectCode:
 				prereq = "((PHYS1002 || PHYS1231 || PHYS1241 || PHYS1221) && (MATH2011 || MATH2111))"
 			elif (codeInUrl[0] == "PHYS4949"):
 				prereq = "((PHYS3010 || PHYS3080) && 3644)"
+
+			#POLS5100 skipped	
 			elif (codeInUrl[0] == "PSYC2001"):
 				prereq = "(PSYC1001 && PSYC1011 && PSYC1111)"
 			elif (codeInUrl[0] == "PSYC3331"):
 				prereq = "((PSYC2001 || PSYC2061 || PSYC2101) || (HESC3504 && 3871))"
+			elif (re.match('PSYC7', codeInUrl[0]) and re.match('\(Restricted', prereq)):
+				prereq = re.sub(r'^\([A-Za-z ]+', '(', prereq, flags=re.IGNORECASE)
+				prereq = re.sub(r'&&', '||', prereq)
+			elif (codeInUrl[0] == "PTRL7011"):
+				prereq = "(36_UOC)"
+			elif (re.match('RISK', codeInUrl[0])):
+				prereq = re.sub(r' of Actuarial Studies', '', prereq, flags=re.IGNORECASE)
+				prereq = re.sub(r'Program ', '', prereq, flags=re.IGNORECASE)
+			elif (codeInUrl[0] == "SAED4403"):
+				prereq = "(SAED3404)"
 			elif (codeInUrl[0] == "SAED4491"):
 				prereq = "(SAED2401 && SAED2406 && SAED3491 && SAED3402 && SAED3404 && SAED3407)"
+
 			elif (codeInUrl[0] == "SAHT4213"):
 				prereq = "(SAHT4211)"
+
+			#SART4043 skipped
+			elif (codeInUrl[0] == "SART9738"):
+				prereq = "(SART9732)"
+			elif (codeInUrl[0] == "SCOM3021"):
+				#!!!
+				prereq = "((SCOM1021 || SCOM2014) && SCOM2021)"
 			elif (codeInUrl[0] == "SENG1031"):
 				#???
 				prereq = "(SOFTWARE_ENGINEERING_PROGRAM || BIOINFOMATICS_PROGRAM)"
@@ -738,16 +778,21 @@ for hc in subjectCode:
 			elif (codeInUrl[0] == "SENG4904"):
 				prereq = "(SOFTWARE_ENGINEERING_CO_OP_PROGRAM)"
 			elif (codeInUrl[0] == "SENG4910"):
-				prereq = "126_UOC_SENGA1"
+				prereq = "(126_UOC_SENGA1)"
 			elif (codeInUrl[0] == "SENG4921"):
 				prereq = "(SOFTWARE_ENGINEERING_PROGRAM)"
+			#SOCF5101 skiiped
 			#SOCW skipped
+			#SOMA4045 skipped
+			elif (codeInUrl[0] == "SOMA9718"):
+				prereq = "(SOMA9717)"
 			elif (codeInUrl[0] == "SRAP3002"):
 				prereq = "((SRAP2002 && SRAP3000 && SRAP3001) || (SLSP2002 && SLSP3000 && SLSP3001) || (SRAP2001 && SRAP2002) || (SLSP2001 && SLSP2002))"
 			elif (codeInUrl[0] == "SRAP3006"):
 				prereq = "(SRAP1000 && SRAP1001 && SRAP2001 && SRAP2002 && DIPP1112 && SOCIAL_RESEARCH_AND_POLICY_PROGRAM)"
 			elif (re.match('SRAP405', codeInUrl[0])):
 				prereq = "(SOCIAL_RESEARCH_AND_POLICY_PROGRAM)"
+			#SRAP5 skipped
 			elif (codeInUrl[0] == "TABL1710"):
 				prereq = "(!(4733 || 4737 || 4744))"
 			elif (codeInUrl[0] == "TABL2712" or codeInUrl[0] == "TABL2731" or codeInUrl[0] == "TABL2732" or codeInUrl[0] == "TABL3761" or codeInUrl[0] == "TABL3771" or codeInUrl[0] == "TABL3791"):
@@ -758,6 +803,13 @@ for hc in subjectCode:
 				prereq = "(48_UOC)"
 			elif (codeInUrl[0] == "TABL3010" or codeInUrl[0] == "TABL3026"):
 				prereq = "(TABL2751 || LEGT2751 || 48_UOC_4620)"
+			elif (codeInUrl[0] == "TABL5512"):
+				prereq = "(8409 || 8415)"
+			elif (codeInUrl[0] == "TABL5517"):
+				prereq = "(TABL5511 || LEGT5511 || SCHOOL_APPROVAL)"
+			elif (codeInUrl[0] == "TABL5541" or codeInUrl[0] == "TABL5551"):
+				#also a coreq
+				prereq = "(LEGT5511 || TABL5511 || LEGT5512 || TABL5512)"
 			elif (codeInUrl[0] == "ZBUS2902" or codeInUrl[0] == "ZBUS3901" or codeInUrl[0] == "ZBUS3902"):
 				prereq = "(4462 && SCHOOL_APPROVAL)"
 			elif (codeInUrl[0] == "ZEIT2307" or codeInUrl[0] == "ZGEN2222"):
@@ -772,19 +824,37 @@ for hc in subjectCode:
 				#???
 				prereq = "(ZEIT2500 && (ZEIT2503 || ZEIT2602))"
 			elif (codeInUrl[0] == "ZEIT4902"):
-				prereq = "CDF_PROGRAM"
-			#continue with ZHSS2424
-
-
-
-
-
-
-
-
-
-
-
+				prereq = "(CDF_PROGRAM)"
+			elif (codeInUrl[0] == "ZHSS2427"):
+				prereq = "((ZHSS1201 && ZHSS1202) || (ZHSS1401 && ZHSS1402))"
+			elif (codeInUrl[0] == "ZHSS2506" or codeInUrl[0] == "ZHSS3501" or codeInUrl[0] == "ZHSS3505"):
+				prereq = "((ZHSS1102 && ZHSS1202) || (ZHSS1102 && ZHSS1302) || (ZHSS1102 && ZHSS1304) || (ZHSS1102 && ZHSS1402) || (ZHSS1102 && ZPEM1202) || (ZHSS1202 && ZHSS1302) || (ZHSS1202 && ZHSS1304) || (ZHSS1202 && ZHSS1402) ||(ZHSS1202 && ZPEM1202) || (ZHSS1302 && ZHSS1304) || (ZHSS1302 && ZHSS1402) || (ZHSS1302 && ZPEM1202) || (ZHSS1304 && ZPEM1202) || (ZHSS1402 && ZPEM1202)"
+			elif (codeInUrl[0] == "ZHSS2600"):
+				#!!!
+				prereq = "(SCHOOL_APPROVAL)"
+			#ZHSS3201 skipped
+			#ZHSS3202 skipped
+			elif (codeInUrl[0] == "ZHSS3231"):
+				prereq = "(ZHSS1201 || ZHSS1202 || SCHOOL_APPROVAL)"
+			elif (codeInUrl[0] == "ZHSS3234"):
+				prereq = "(ZHSS1201 || ZHSS1202 || (ZHSS1401 && ZHSS1402))"
+			elif (codeInUrl[0] == "ZHSS3421"):
+				prereq = "((ZHSS1401 || ZHSS1402 || ZHSS2600)"
+			elif (codeInUrl[0] == "ZPEM2401"):
+				#???
+				prereq = "((ZPEM1302 || ZPEM1304) && ZPEM2302 && ZPEM1501 && ZPEM1402)"
+			elif (codeInUrl[0] == "ZPEM2502"):
+				prereq = "((ZPEM1301 || ZPEM1303) && (ZPEM1302 || ZPEM1304) && ZPEM1501 && ZPEM1502 && (ZPEM2302 || ZPEM2309))"
+			elif (codeInUrl[0] == "ZPEM2506"):
+				prereq = "((ZPEM1301 || ZPEM1303) && (ZPEM1302 || ZPEM1304) && ZPEM1501 && (ZPEM1402 || ZPEM1502))"
+			elif (codeInUrl[0] == "ZPEM2509"):
+				prereq = "((ZPEM1301 || ZPEM1303) && (ZPEM1302 || ZPEM1304) && ZPEM1501 && ZPEM1502)"
+			elif (codeInUrl[0] == "ZPEM3103"):
+				prereq = "(ZPEM1301 && ZPEM1302 && (ZPEM2113 || ZPEM2502))"
+			elif (codeInUrl[0] == "ZPEM3107"):
+				prereq = "((ZPEM2102 && ZPEM2113) || ZINT2501)"
+			elif (codeInUrl[0] == "ZPEM3524"):
+				prereq = "((ZPEM2401 || ZPEM2502) && ZPEM2506)"
 
 
 			
@@ -795,6 +865,51 @@ for hc in subjectCode:
 		else:
 			#print "went here"
 			f.write("INSERT INTO pre_reqs (course_code, career, pre_req_conditions, norm_pre_req_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM pre_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
+
+		if (courseCode2 or courseCode):
+			if (courseCode2):
+				coreq = coreqSentence.search(courseCode2[0]).group(1)
+			else:
+				coreq = prereqOnlySentence.search(courseCode[0]).group(3)
+			coreqCondition = coreq
+			coreqCondition = re.sub(r"\'", "\'\'", coreqCondition, flags=re.IGNORECASE)
+
+			#remove coreq word
+			coreq = re.sub(r"Pre(.*?:|requisite)", "(", coreq, flags=re.IGNORECASE)
+
+			#change to ands
+			coreq = re.sub(r"\sAND\s", " && ", coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r"\s&\s", " && ", coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r"\sincluding\s", " && ", coreq, flags=re.IGNORECASE)
+
+			#comma can mean and/or
+			coreq = re.sub(r",\s*or", " || ", coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r",", " && ", coreq, flags=re.IGNORECASE)
+
+			#change to ors
+			coreq = re.sub(r';', ' || ', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\sOR\s', ' || ', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\/', ' || ', coreq, flags=re.IGNORECASE)
+
+			#change to uoc
+			coreq = re.sub(r'\s*uoc\b', '_UOC', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\s*uc\b', '_UOC', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\s*unit.*? of credit.*?\b', '_UOC ', coreq, flags=re.IGNORECASE)
+
+			#remove unnecessary words
+			coreq = re.sub(r'\.', '', coreq, flags=re.IGNORECASE)
+
+			#change [] to ()
+			coreq = re.sub(r'\[', '(', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\]', ')', coreq, flags=re.IGNORECASE)
+
+			g.write("INSERT INTO co_reqs (course_code, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, coreqCondition, coreq, codeInUrl[0], career))
+         
+			#print prereq[0].group()
+		else:
+			#print "went here"
+			g.write("INSERT INTO co_reqs (course_code, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
+
 
 	except:
 		print codeInUrl,
