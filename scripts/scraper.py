@@ -19,7 +19,8 @@ allCourseCode = set()
 codePattern = re.compile(r"[A-Z]{4}[0-9]{4}")
 prereqSentence = re.compile(r"<p>[pP]re.*?<\/p>")
 prereqOnlySentence = re.compile(r"<p>([pP]re.*?)([pP]requisite)?([cC]o-?[Rr]eq.*?)?([Ee]xcl.*?)?<\/p>")
-coreqSentence = re.compile(r"<p>([cC]o.*?)<\/p>")
+coreqSentence = re.compile(r"([cC]o[ \-][rR]eq.*?)(\.|<|Excl|Equi)")
+coreqOnlySentence = re.compile(r"([cC]o[ \-][rR]eq.*)")
 exclOnlySentence = re.compile(r"<p>[pP]re.*?([Ee]xcl.*?)<\/p>")
 
 f = open("pre_reqs.sql", "w")
@@ -56,15 +57,20 @@ for hc in subjectCode:
 		career = "PG"
 
 	url2 = hc
-	print hc
+	#print hc
+	prereq = ""
+	coreq = ""
 	try:
 		codeInUrl = re.findall(codePattern, url2)
 		html2 = urllib2.urlopen(url2).read()
 		courseCode = re.findall(prereqSentence, html2)
 		courseCode2 = re.findall(coreqSentence, html2)
+		#print "debug"
+		#print courseCode2
 
 		if courseCode:
 			prereq = prereqOnlySentence.search(courseCode[0]).group(1)
+			coreq = prereqOnlySentence.search(courseCode[0]).group(3)
 			prereqCondition = prereq
 			prereqCondition = re.sub(r"\'", "\'\'", prereqCondition, flags=re.IGNORECASE)
 
@@ -150,11 +156,11 @@ for hc in subjectCode:
 				#!!!
 				prereq = "(ACTUARIAL_HONOURS)"
 			elif (codeInUrl[0] == "ACTL4002"):
-				#????
-				prereq = "???"
+				#changed prereq and coreq
+				prereq = "(ACTL4001)"
 			elif (codeInUrl[0] == "ACTL4303"):
-				#needs coreq/another way
-				prereq = "(ACTL3141)"
+				#SPECIAL CONDITION
+				prereq = "(ACTL3141 || ACTL4001)"
 			elif (codeInUrl[0] == "ACTL5103" or codeInUrl[0] == "ACTL5104" or codeInUrl[0] == "ACTL5106"):
 				prereq = "(ACTL5101 && (8411 || 8416))"
 			elif (codeInUrl[0] == "ACTL5105" or codeInUrl[0] == "ACTL5109"):
@@ -866,16 +872,25 @@ for hc in subjectCode:
 			#print "went here"
 			f.write("INSERT INTO pre_reqs (course_code, career, pre_req_conditions, norm_pre_req_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM pre_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
 
-		if (courseCode2 or courseCode):
+		if (courseCode2 or coreq):
+
 			if (courseCode2):
-				coreq = coreqSentence.search(courseCode2[0]).group(1)
-			else:
-				coreq = prereqOnlySentence.search(courseCode[0]).group(3)
+				print courseCode2[0][0]
+				print "searching"
+				print coreqOnlySentence.search(courseCode2[0][0]).group(0)
+				print "groups"
+
+				coreq = coreqOnlySentence.search(courseCode2[0][0]).group(0)
+			print hc
+			print "printing"
+			print coreq
+				
+			
 			coreqCondition = coreq
 			coreqCondition = re.sub(r"\'", "\'\'", coreqCondition, flags=re.IGNORECASE)
 
 			#remove coreq word
-			coreq = re.sub(r"Pre(.*?:|requisite)", "(", coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r"Co(.*?:|requisite) ?", "(", coreq, flags=re.IGNORECASE)
 
 			#change to ands
 			coreq = re.sub(r"\sAND\s", " && ", coreq, flags=re.IGNORECASE)
@@ -903,6 +918,70 @@ for hc in subjectCode:
 			coreq = re.sub(r'\[', '(', coreq, flags=re.IGNORECASE)
 			coreq = re.sub(r'\]', ')', coreq, flags=re.IGNORECASE)
 
+			coreq = re.sub(r'stream', '', coreq, flags=re.IGNORECASE)
+
+			#cleanup
+			coreq = re.sub(r'&&\s*&&$', '&&', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'&&\s*$', ' ', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\|\|\s*$', ' ', coreq, flags=re.IGNORECASE)
+			coreq += ")"
+			coreq = re.sub(r'\(\s*\)', ' ', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\(\s*', '(', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\s*\)', ')', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\s\s+', ' ', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\'', '\'\'', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'^\s+$', '', coreq, flags=re.IGNORECASE)
+
+			print "writing"
+
+			#manual
+			if (codeInUrl[0] == "ACTL4002"):
+				coreq = "(ACTL3162 && ACTL3182)"
+			elif (codeInUrl[0] == "ACTL4303"):
+				coreq = ""
+			elif (codeInUrl[0] == "ACTL5303"):
+				coreq = "(ACTL5109)"
+			elif (codeInUrl[0] == "AERO3640"):
+				coreq = "(MMAN3200)"
+			elif (codeInUrl[0] == "COMP3231"):
+				coreq = "(COMP2121 && 75_WAM)"
+			elif (codeInUrl[0] == "COMP3891"):
+				coreq = "((COMP2121 || ELEC2142) && 75_WAM)"
+			elif (codeInUrl[0] == "ELEC2134"):
+				coreq = "(ELEC1111 || ELEC1112)"
+			elif (codeInUrl[0] == "ENGG0380"):
+				coreq = "(ENGINEERING_PROGRAM)"
+			elif (codeInUrl[0] == "FINS5512"):
+				coreq = "(ACCT5906 || ECON5103 || 9273 || 5273 || 7273 || 8007)"
+			elif (codeInUrl[0] == "FINS5516" or codeInUrl[0] == "FINS5530" or codeInUrl[0] == "FINS5531" or codeInUrl[0] == "FINS5542"):
+				coreq = "((FINS5513 || 8406)"
+			elif (codeInUrl[0] == "FINS5522"):
+				coreq = "((FINS5512 && FINS5513) || 8406)"
+			elif (codeInUrl[0] == "FINS5533"):
+				coreq = "(FINS5513 || FINS5561 || 8406)"
+			elif (codeInUrl[0] == "FINS5566"):
+				coreq = "(FINS5512 || 8406 || 8413)"
+			elif (codeInUrl[0] == "FOOD9430"):
+				coreq = "(24_UOC_LEVEL_3_4_FOOD)"
+			#JURD skipped
+			#LAWS skipped
+			elif (codeInUrl[0] == "MARK5820"):
+				coreq = "(MARK5800 || MARK5801 || (7291 || 5291 || 8291 || 8281))"
+			elif (codeInUrl[0] == "MATS5003"):
+				coreq = "(MATS5003)"
+			elif (codeInUrl[0] == "MGMT5603" or codeInUrl[0] == "MGMT5604"):
+				coreq = "(IBUS5601 || MGMT5601)"
+			#MNGT6274 skipped
+			#MNGT6372 skipped
+			elif (codeInUrl[0] == "OPTM4271"):
+				coreq = "(OPTM4211 && OPTM4231 && OPTM4251)"
+			elif (codeInUrl[0] == "PHYS3080"):
+				coreq = "((PHYS3010 || PHYS3210) && PHYS3020)"
+			#ZHSS3201 skipped
+			#ZHSS3202 skipped
+
+
+
 			g.write("INSERT INTO co_reqs (course_code, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, coreqCondition, coreq, codeInUrl[0], career))
          
 			#print prereq[0].group()
@@ -910,9 +989,16 @@ for hc in subjectCode:
 			#print "went here"
 			g.write("INSERT INTO co_reqs (course_code, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
 
+		coreq = ""
+
 
 	except:
 		print codeInUrl,
 		print "No Handbook Entry"
+		prereq = "WARNING"
+		coreq = "WARNING"
+		f.write("INSERT INTO pre_reqs (course_code, career, pre_req_conditions, norm_pre_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM pre_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, prereqCondition, prereq, codeInUrl[0], career))
+		g.write("INSERT INTO co_reqs (course_code, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, coreqCondition, coreq, codeInUrl[0], career))
 
 f.close()
+g.close()
