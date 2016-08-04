@@ -863,6 +863,11 @@ for hc in subjectCode:
 				prereq = "((ZPEM2401 || ZPEM2502) && ZPEM2506)"
 
 
+			#php explosion preparation
+			prereq = re.sub(r'\(', '( ', prereq, flags=re.IGNORECASE)
+			prereq = re.sub(r'\)', ' )', prereq, flags=re.IGNORECASE)
+
+
 			
 
 			f.write("INSERT INTO pre_reqs (course_code, career, pre_req_conditions, norm_pre_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM pre_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, prereqCondition, prereq, codeInUrl[0], career))
@@ -979,6 +984,10 @@ for hc in subjectCode:
 				coreq = "((PHYS3010 || PHYS3210) && PHYS3020)"
 			#ZHSS3201 skipped
 			#ZHSS3202 skipped
+
+			#php explosion preparation
+			coreq = re.sub(r'\(', '( ', coreq, flags=re.IGNORECASE)
+			coreq = re.sub(r'\)', ' )', coreq, flags=re.IGNORECASE)
 
 
 
