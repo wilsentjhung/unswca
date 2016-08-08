@@ -21,7 +21,10 @@ prereqSentence = re.compile(r"<p>[pP]re.*?<\/p>")
 prereqOnlySentence = re.compile(r"<p>([pP]re.*?)([pP]requisite)?([cC]o-?[Rr]eq.*?)?([Ee]xcl.*?)?<\/p>")
 coreqSentence = re.compile(r"([cC]o[ \-][rR]eq.*?)(\.|<|Excl|Equi)")
 coreqOnlySentence = re.compile(r"([cC]o[ \-][rR]eq.*)")
-exclOnlySentence = re.compile(r"<p>[pP]re.*?([Ee]xcl.*?)<\/p>")
+equiSentence = re.compile(r"<p>.*?([Ee]quivalent:.*?)<\/p>")
+equiOnlySentence = re.compile(r".*?([Ee]quivalent:.*)")
+exclSentence = re.compile(r"<p>.*?([Ee]xclu.*?:.*?)<\/p>")
+exclOnlySentence = re.compile(r".*?([Ee]xclu.*?:.*)")
 
 f = open("pre_reqs.sql", "w")
 f.write("DROP TABLE IF EXISTS pre_reqs;\n")
@@ -30,6 +33,14 @@ f.write("CREATE TABLE pre_reqs (course_code text, career text, pre_req_condition
 g = open("co_reqs.sql", "w")
 g.write("DROP TABLE IF EXISTS co_reqs;\n")
 g.write("CREATE TABLE co_reqs (course_code text, career text, co_req_conditions text, norm_co_req_conditions text);\n")
+
+h = open("equivalence.sql", "w")
+h.write("DROP TABLE IF EXISTS equivalence;\n")
+h.write("CREATE TABLE equivalence (course_code text, career text, equivalence_conditions text, norm_equivalence_conditions text);\n")
+
+i = open("exclusion.sql", "w")
+h.write("DROP TABLE IF EXISTS exclusion;\n")
+h.write("CREATE TABLE exclusion (course_code text, career text, exclusion_conditions text, norm_exclusion_conditions text);\n")
 
 ugUrl = "http://www.handbook.unsw.edu.au/vbook2016/brCoursesByAtoZ.jsp?StudyLevel=Undergraduate&descr=All"
 ugHtml = urllib2.urlopen(ugUrl).read()
@@ -59,18 +70,34 @@ for hc in subjectCode:
 	url2 = hc
 	#print hc
 	prereq = ""
+	prereqCondition = ""
 	coreq = ""
+	coreqCondition = ""
+	equivalence = ""
+	equivalenceCondition = ""
+	exclusion = ""
+	exclusionCondition = ""
+
 	try:
 		codeInUrl = re.findall(codePattern, url2)
 		html2 = urllib2.urlopen(url2).read()
+		
+		#print "debug"
 		courseCode = re.findall(prereqSentence, html2)
 		courseCode2 = re.findall(coreqSentence, html2)
-		#print "debug"
-		#print courseCode2
+		courseCode3 = re.findall(equiSentence, html2)
+		courseCode4 = re.findall(exclSentence, html2)
+		if courseCode3:
+			#print "trying"
+			equivalence = equiOnlySentence.search(courseCode3[0]).group(0)
+
+		if courseCode4:
+			exclusion = exclOnlySentence.search(courseCode4[0]).group(0)
 
 		if courseCode:
 			prereq = prereqOnlySentence.search(courseCode[0]).group(1)
 			coreq = prereqOnlySentence.search(courseCode[0]).group(3)
+
 			prereqCondition = prereq
 			prereqCondition = re.sub(r"\'", "\'\'", prereqCondition, flags=re.IGNORECASE)
 
@@ -880,15 +907,15 @@ for hc in subjectCode:
 		if (courseCode2 or coreq):
 
 			if (courseCode2):
-				print courseCode2[0][0]
-				print "searching"
-				print coreqOnlySentence.search(courseCode2[0][0]).group(0)
-				print "groups"
+				#print courseCode2[0][0]
+				#print "searching"
+				#print coreqOnlySentence.search(courseCode2[0][0]).group(0)
+				#print "groups"
 
 				coreq = coreqOnlySentence.search(courseCode2[0][0]).group(0)
-			print hc
-			print "printing"
-			print coreq
+			#print hc
+			#print "printing"
+			#print coreq
 				
 			
 			coreqCondition = coreq
@@ -937,7 +964,7 @@ for hc in subjectCode:
 			coreq = re.sub(r'\'', '\'\'', coreq, flags=re.IGNORECASE)
 			coreq = re.sub(r'^\s+$', '', coreq, flags=re.IGNORECASE)
 
-			print "writing"
+			#print "writing"
 
 			#manual
 			if (codeInUrl[0] == "ACTL4002"):
@@ -998,16 +1025,178 @@ for hc in subjectCode:
 			#print "went here"
 			g.write("INSERT INTO co_reqs (course_code, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
 
-		coreq = ""
+		if equivalence:
+			#print equivalence
+			equivalenceCondition = equivalence
+			equivalenceCondition = re.sub(r"\'", "\'\'", equivalenceCondition, flags=re.IGNORECASE)
+
+			#remove equivalence word
+			equivalence = re.sub(r"[eE]quiv.*?:", "(", equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r"<\/strong>&nbsp;", " ", equivalence, flags=re.IGNORECASE)
+
+			#change to ands
+			equivalence = re.sub(r"\sAND\s", " || ", equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r"\s&\s", " || ", equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r"\sincluding\s", " || ", equivalence, flags=re.IGNORECASE)
+
+			#comma can mean and/or
+			equivalence = re.sub(r",\s*or", " || ", equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r",", " || ", equivalence, flags=re.IGNORECASE)
+
+			#change to ors
+			equivalence = re.sub(r';', ' || ', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\sOR\s', ' || ', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\/', ' || ', equivalence, flags=re.IGNORECASE)
+
+			#change to uoc
+			equivalence = re.sub(r'\s*uoc\b', '_UOC', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\s*uc\b', '_UOC', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\s*unit.*? of credit.*?\b', '_UOC ', equivalence, flags=re.IGNORECASE)
+
+			#remove unnecessary words
+			equivalence = re.sub(r'\.', '', equivalence, flags=re.IGNORECASE)
+
+			#change [] to ()
+			equivalence = re.sub(r'\[', '(', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\]', ')', equivalence, flags=re.IGNORECASE)
+
+
+
+			equivalence = re.sub(r'Enrolment in [^(]+ \(([^)]+)\)', r'\1', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'approval from the School', "SCHOOL_APPROVAL", equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'school approval', "SCHOOL_APPROVAL", equivalence, flags=re.IGNORECASE)
+			#equivalence = re.sub(r'Enrolment in Program 3586 && 3587 && 3588 && 3589 && 3155 && 3154 or 4737', "3586 || 3587 || 3588 || 3589 || 3155 || 3154 || 4737", equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'Enrolment in program ([0-9]+)', r'\1', equivalence, flags=re.IGNORECASE)
+
+			#equivalence = re.sub(r'and in any of the following plans MATHR13986, MATHR13523, MATHR13564, MATHR13956, MATHR13589, MATHR13761, MATHR13946, MATHR13949 \|\| MATHR13998', 
+				#"(MATHR13986 || MATHR13523 || MATHR13564 || MATHR13956 || MATHR13589 || MATHR13761 || MATHR13946 || MATHR13949 || MATHR13998)", equivalence, flags=re.IGNORECASE)
+			#equivalence = re.sub(r'A pass in BABS1201 plus either a pass in', "BABS1201 && (", equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'a minimum of a credit in ([A-Za-z]{4}[0-9]{4})', r'\1{CR}', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'([0-9]+)_UOC\s+at\s+Level\s+([0-9])\s*[^a-zA-Z0-9]*$', r'\1_UOC_LEVEL_\2', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'([0-9]+)_UOC\s+at\s+Level\s+([0-9])\s+([A-Za-z])', r'\1_UOC_LEVEL_\2_\3', equivalence, flags=re.IGNORECASE)
+
+			equivalence = re.sub(r'stream', '', equivalence, flags=re.IGNORECASE)
+
+			#cleanup
+			equivalence = re.sub(r'&&\s*&&$', '&&', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'&&\s*$', ' ', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\|\|\s*$', ' ', equivalence, flags=re.IGNORECASE)
+			equivalence += ")"
+			equivalence = re.sub(r'\(\s*\)', ' ', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\(\s*', '(', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\s*\)', ')', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\s\s+', ' ', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\'', '\'\'', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'^\s+$', '', equivalence, flags=re.IGNORECASE)
+
+			#php explosion preparation
+			equivalence = re.sub(r'\(', '( ', equivalence, flags=re.IGNORECASE)
+			equivalence = re.sub(r'\)', ' )', equivalence, flags=re.IGNORECASE)
+
+			#print equivalence
+			
+
+			h.write("INSERT INTO equivalence (course_code, career, equivalence_conditions, norm_equivalence_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM equivalence WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, equivalenceCondition, equivalence, codeInUrl[0], career))
+         
+			#print prereq[0].group()
+		else:
+			#print "went here"
+			h.write("INSERT INTO equivalence (course_code, career, equivalence_conditions, norm_equivalence_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM equivalence WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
+
+		if exclusion:
+			#print exclusion
+			exclusionCondition = exclusion
+			exclusionCondition = re.sub(r"\'", "\'\'", exclusionCondition, flags=re.IGNORECASE)
+
+			#remove exclusion word
+			exclusion = re.sub(r"[eE]xcl.*?:", "(", exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r"<\/strong>&nbsp;", " ", exclusion, flags=re.IGNORECASE)
+
+			#change to ands
+			exclusion = re.sub(r"\sAND\s", " || ", exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r"\s&\s", " || ", exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r"\sincluding\s", " || ", exclusion, flags=re.IGNORECASE)
+
+			#comma can mean and/or
+			exclusion = re.sub(r",\s*or", " || ", exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r",", " || ", exclusion, flags=re.IGNORECASE)
+
+			#change to ors
+			exclusion = re.sub(r';', ' || ', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\sOR\s', ' || ', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\/', ' || ', exclusion, flags=re.IGNORECASE)
+
+			#change to uoc
+			exclusion = re.sub(r'\s*uoc\b', '_UOC', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\s*uc\b', '_UOC', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\s*unit.*? of credit.*?\b', '_UOC ', exclusion, flags=re.IGNORECASE)
+
+			#remove unnecessary words
+			exclusion = re.sub(r'\.', '', exclusion, flags=re.IGNORECASE)
+
+			#change [] to ()
+			exclusion = re.sub(r'\[', '(', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\]', ')', exclusion, flags=re.IGNORECASE)
+
+
+
+			exclusion = re.sub(r'Enrolment in [^(]+ \(([^)]+)\)', r'\1', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'approval from the School', "SCHOOL_APPROVAL", exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'school approval', "SCHOOL_APPROVAL", exclusion, flags=re.IGNORECASE)
+			#exclusion = re.sub(r'Enrolment in Program 3586 && 3587 && 3588 && 3589 && 3155 && 3154 or 4737', "3586 || 3587 || 3588 || 3589 || 3155 || 3154 || 4737", exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'Enrolment in program ([0-9]+)', r'\1', exclusion, flags=re.IGNORECASE)
+
+			#exclusion = re.sub(r'and in any of the following plans MATHR13986, MATHR13523, MATHR13564, MATHR13956, MATHR13589, MATHR13761, MATHR13946, MATHR13949 \|\| MATHR13998', 
+				#"(MATHR13986 || MATHR13523 || MATHR13564 || MATHR13956 || MATHR13589 || MATHR13761 || MATHR13946 || MATHR13949 || MATHR13998)", exclusion, flags=re.IGNORECASE)
+			#exclusion = re.sub(r'A pass in BABS1201 plus either a pass in', "BABS1201 && (", exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'a minimum of a credit in ([A-Za-z]{4}[0-9]{4})', r'\1{CR}', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'([0-9]+)_UOC\s+at\s+Level\s+([0-9])\s*[^a-zA-Z0-9]*$', r'\1_UOC_LEVEL_\2', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'([0-9]+)_UOC\s+at\s+Level\s+([0-9])\s+([A-Za-z])', r'\1_UOC_LEVEL_\2_\3', exclusion, flags=re.IGNORECASE)
+
+			exclusion = re.sub(r'stream', '', exclusion, flags=re.IGNORECASE)
+
+			#cleanup
+			exclusion = re.sub(r'&&\s*&&$', '&&', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'&&\s*$', ' ', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\|\|\s*$', ' ', exclusion, flags=re.IGNORECASE)
+			exclusion += ")"
+			exclusion = re.sub(r'\(\s*\)', ' ', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\(\s*', '(', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\s*\)', ')', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\s\s+', ' ', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\'', '\'\'', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'^\s+$', '', exclusion, flags=re.IGNORECASE)
+
+			#php explosion preparation
+			exclusion = re.sub(r'\(', '( ', exclusion, flags=re.IGNORECASE)
+			exclusion = re.sub(r'\)', ' )', exclusion, flags=re.IGNORECASE)
+
+			#print exclusion
+			
+
+			i.write("INSERT INTO exclusion (course_code, career, exclusion_conditions, norm_exclusion_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM exclusion WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, exclusionCondition, exclusion, codeInUrl[0], career))
+         
+			#print prereq[0].group()
+		else:
+			#print "went here"
+			i.write("INSERT INTO exclusion (course_code, career, exclusion_conditions, norm_exclusion_conditions) SELECT \'%s\', \'%s\', \'\', \'\' WHERE NOT EXISTS (SELECT course_code, career FROM exclusion WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, codeInUrl[0], career))
 
 
 	except:
 		print codeInUrl,
 		print "No Handbook Entry"
-		prereq = "WARNING"
-		coreq = "WARNING"
-		f.write("INSERT INTO pre_reqs (course_code, career, pre_req_conditions, norm_pre_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM pre_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, prereqCondition, prereq, codeInUrl[0], career))
-		g.write("INSERT INTO co_reqs (course_code, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, coreqCondition, coreq, codeInUrl[0], career))
+		#prereq = "WARNING"
+		#coreq = "WARNING"
+		#equivalence = "WARNING"
+		#if prereqCondition:
+		#	f.write("INSERT INTO pre_reqs (course_code, career, pre_req_conditions, norm_pre_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM pre_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, prereqCondition, prereq, codeInUrl[0], career))
+		#if coreqCondition:
+	#		g.write("INSERT INTO co_reqs (course_code, career, co_req_conditions, norm_co_req_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, coreqCondition, coreq, codeInUrl[0], career))
+		#if equivalenceCondition:
+		#	h.write("INSERT INTO equivalence (course_code, career, equivalence_conditions, norm_equivalence_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM co_reqs WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, equivalenceCondition, equivalence, codeInUrl[0], career))
+
 
 f.close()
 g.close()
+h.close()
+i.close()
