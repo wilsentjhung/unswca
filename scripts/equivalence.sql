@@ -1,7 +1,5 @@
 DROP TABLE IF EXISTS equivalence;
 CREATE TABLE equivalence (course_code text, career text, equivalence_conditions text, norm_equivalence_conditions text);
-DROP TABLE IF EXISTS exclusion;
-CREATE TABLE exclusion (course_code text, career text, exclusion_conditions text, norm_exclusion_conditions text);
 INSERT INTO equivalence (course_code, career, equivalence_conditions, norm_equivalence_conditions) SELECT 'ACCT1501', 'UG', '', '' WHERE NOT EXISTS (SELECT course_code, career FROM equivalence WHERE course_code = 'ACCT1501' and career = 'UG'); 
 INSERT INTO equivalence (course_code, career, equivalence_conditions, norm_equivalence_conditions) SELECT 'ACCT1511', 'UG', '', '' WHERE NOT EXISTS (SELECT course_code, career FROM equivalence WHERE course_code = 'ACCT1511' and career = 'UG'); 
 INSERT INTO equivalence (course_code, career, equivalence_conditions, norm_equivalence_conditions) SELECT 'ACCT2101', 'UG', '', '' WHERE NOT EXISTS (SELECT course_code, career FROM equivalence WHERE course_code = 'ACCT2101' and career = 'UG'); 

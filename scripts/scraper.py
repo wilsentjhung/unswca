@@ -39,8 +39,8 @@ h.write("DROP TABLE IF EXISTS equivalence;\n")
 h.write("CREATE TABLE equivalence (course_code text, career text, equivalence_conditions text, norm_equivalence_conditions text);\n")
 
 i = open("exclusion.sql", "w")
-h.write("DROP TABLE IF EXISTS exclusion;\n")
-h.write("CREATE TABLE exclusion (course_code text, career text, exclusion_conditions text, norm_exclusion_conditions text);\n")
+i.write("DROP TABLE IF EXISTS exclusion;\n")
+i.write("CREATE TABLE exclusion (course_code text, career text, exclusion_conditions text, norm_exclusion_conditions text);\n")
 
 ugUrl = "http://www.handbook.unsw.edu.au/vbook2016/brCoursesByAtoZ.jsp?StudyLevel=Undergraduate&descr=All"
 ugHtml = urllib2.urlopen(ugUrl).read()
@@ -1167,11 +1167,59 @@ for hc in subjectCode:
 			exclusion = re.sub(r'\'', '\'\'', exclusion, flags=re.IGNORECASE)
 			exclusion = re.sub(r'^\s+$', '', exclusion, flags=re.IGNORECASE)
 
+			
+
+			#print exclusion
+			if (codeInUrl[0] == "ARTS1480"):
+				exclusion = "(FREN1000 || FREN1101 || GENT0425)"
+			elif (codeInUrl[0] == "ARTS1481"):
+				exclusion = "(FREN1002 || FREN1102)"
+			elif (codeInUrl[0] == "ARTS2480" or codeInUrl[0] == "ARTS2481"):
+				exclusion = ""
+			elif (codeInUrl[0] == "BIOM2451"):
+				exclusion = "(ENGINEERING_PROGRAM)"
+			elif (codeInUrl[0] == "CEIC4001" or codeInUrl[0] == "CEIC4002" or codeInUrl[0] == "CHEN6710"):
+				exclusion = "(CEIC4005)"
+			elif (codeInUrl[0] == "CEIC4003"):
+				exclusion = "(CEIC4005 || CEIC4006)"
+			elif (codeInUrl[0] == "CEIC4005"):
+				exclusion = "(CEIC4002 || CEIC4003)"
+			elif (codeInUrl[0] == "CEIC4006"):
+				exclusion = "(CEIC4003 || CEIC4005)"
+			elif (codeInUrl[0] == "COMP4931"):
+				exclusion = "(4515)"
+			elif (codeInUrl[0] == "CRIM2020"):
+				exclusion = "(LAW_PROGRAM)"
+			elif (codeInUrl[0] == "ECON1203"):
+				exclusion = "(MATH2841 || MATH2801 || MATH2901 || MATH2099 || ACTL2002)"
+			elif (re.match('GENC', codeInUrl[0])):
+				exclusion = "(BUSINESS_PROGRAM)"
+			elif (re.match('GENM', codeInUrl[0])):
+				exclusion = "(MEDICINE_PROGRAM)"
+			elif (re.match('GENT', codeInUrl[0])):
+				exclusion = "(ARTS_SOCIAL_SCIENCES_PROGRAM)"
+			elif (codeInUrl[0] == "IEST6907"):
+				exclusion = "(3988 || 3932)"
+			elif (codeInUrl[0] == "JURD7321"):
+				exclusion = "(JURD7446 || JURD7448 || JURD7617)"
+			elif (codeInUrl[0] == "JURD7446" or codeInUrl[0] == "JURD7448"):
+				exclusion = "(JURD7321 || JURD7617)"
+			elif (codeInUrl[0] == "JURD7617"):
+				exclusion = "(JURD7321)"
+			elif (codeInUrl[0] == "MATH2089"):
+				exclusion = "(CVEN2002 || CVEN2025 || CVEN2702 || ECON3209 || MATH2049 || MATH2829 || MATH2839 || MATH2899 || MINE2700)"
+			elif (codeInUrl[0] == "MATH2301"):
+				exclusion = "(MATH2089 || CVEN2002 || CVEN2702)"
+			elif (codeInUrl[0] == "MSCI0501"):
+				exclusion = "(GENS4625 || MSCI2001 || GENB5001 || SCIENCE_PROGRAM)"
+			elif (codeInUrl[0] == "PHYS4979"):
+				exclusion = "(PHYS3780 || !(3644))"
+
 			#php explosion preparation
 			exclusion = re.sub(r'\(', '( ', exclusion, flags=re.IGNORECASE)
 			exclusion = re.sub(r'\)', ' )', exclusion, flags=re.IGNORECASE)
 
-			#print exclusion
+
 			
 
 			i.write("INSERT INTO exclusion (course_code, career, exclusion_conditions, norm_exclusion_conditions) SELECT \'%s\', \'%s\', \'%s\', \'%s\' WHERE NOT EXISTS (SELECT course_code, career FROM exclusion WHERE course_code = \'%s\' and career = \'%s\'); \n" % (codeInUrl[0], career, exclusionCondition, exclusion, codeInUrl[0], career))
