@@ -23,30 +23,40 @@
     //assumes the same index corresponds for courses_passed, marks and grades.
     //TODO UOC subject checking
     //TODO degree type checking (MARKETING_HONOURS etc.)
+    //TODO print TRUE for no prereqs
     function check_pre_req ($courses_passed, $courses_marks, $courses_grades, $course_to_check, $uoc, $wam, $stream, $program_code, $career) {
+        include("pgsql.php");
+
         //get the pre req conditions
         $pre_req_query = "SELECT p.norm_pre_req_conditions AS prereq 
                          FROM pre_reqs p 
-                         WHERE p.course_code = $course_to_check AND p.career = $career";
-        $pre_req_result = pg_query($aims_db_connection, $pre_req_query);
-
-        $pre_req_condition = explode(" ", $pre_req_result);
+                         WHERE p.course_code LIKE '$course_to_check' AND p.career LIKE '$career'";
+        $result = pg_query($aims_db_connection, $pre_req_query);
+        $pre_req_result = pg_fetch_array($result);
+        $pre_req_condition = explode(" ", $pre_req_result[0]);
         $i = 0;
         $pre_req_evaluation = array("");
+    
+        if (count($pre_req_condition) <= 1) {
+            return 1;
+        } 
         while ($i < count($pre_req_condition)) {
 
             //checking individual subject
+            //echo $pre_req_condition[$i];
             if (preg_match("/^[A-Z]{4}[0-9]{4}$/", $pre_req_condition[$i])) {
                 $course_counter = 0;
-                while (($course_counter < count($courses_passed)) && !strcmp($pre_req_evaluation[$i], "TRUE")) {
-                    if (strcmp($courses_passed[$course_counter], $pre_req_condition[$i])) {
+                //echo count($courses_passed);
+                $pre_req_evaluation[$i] = "FALSE";
+                //echo $pre_req_evaluation[$i];
+                while (($course_counter < count($courses_passed)) && !(strcmp($pre_req_evaluation[$i], "TRUE") == 0)) {
+                    //echo $courses_passed[$course_counter];
+                    //echo $pre_req_condition[$i];
+                    if (strcmp($courses_passed[$course_counter], $pre_req_condition[$i]) == 0) {
                         $pre_req_evaluation[$i] = "TRUE";
 
                     }
                     $course_counter++;
-                }
-                if (!strcmp($pre_req_evaluation[$i], "TRUE")) {
-                    $pre_req_evaluation[$i] = "FALSE";
                 }
 
             //checking individual subject with a minimum grade
@@ -116,33 +126,34 @@
                 }
 
             //school approval
-            } elseif (strcmp($pre_req_condition[$i], "SCHOOL_APPROVAL")) {
+            } elseif (strcmp($pre_req_condition[$i], "SCHOOL_APPROVAL") == 0) {
                 $pre_req_evaluation[$i] = "FALSE";
 
             //things not handled yet
-            } elseif (preg_match("/^([A-Z_a-z0-9]+$/", $pre_req_condition[$i])) {
+            } elseif (preg_match("/^[A-Z_a-z0-9]+$/", $pre_req_condition[$i])) {
                 $pre_req_evaluation[$i] = "FALSE";
-            }
-
-
-
-            //for brackets and operators
-            } else {
+            } //for brackets and operators
+            else {
+                //echo "bracket";
                 $pre_req_evaluation[$i] = $pre_req_condition[$i];
 
             }
+
+            echo $pre_req_evaluation[$i];
             $i++;
         }
-
-
-        return eval("return " . implode(" ", $pre_req_evaluation))
-
-
-
-
-
-
+        $eval = eval("return " . implode(" ", $pre_req_evaluation) . ";");
+        echo $eval;
+        echo eval("return " . "(1&&0)" . ";");
+        return eval("return " . implode(" ", $pre_req_evaluation) . ";");
     }
 
-
+    $test = check_pre_req($subjects, $marks, $grades, "COMP4121", $uoc, $wam, $streams[0], $programs[0], $career);
+    echo "<br>";
+    if ($test == 1) {
+        echo "TRUE";
+    } else {
+        echo "FALSE";
+    }
+    echo $test;
 ?>

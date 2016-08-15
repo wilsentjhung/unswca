@@ -1,14 +1,14 @@
 <?php
-  include("inc/login.php");
+include("inc/login.php");
 
-  if (isset($_SESSION["login_user"])) {
+if (isset($_SESSION["login_user"])) {
     header("Location: home.php");
-  }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,69 +23,67 @@
     <title>UNSW Course Advisor</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <link href="assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
+    <link href="components/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
     <link href="css/index_style.css" rel="stylesheet">
 
     <!-- Connect to the PostgreSQL database -->
     <?php include_once("inc/pgsql.php"); ?>
-  </head>
+</head>
 
-  <body>
+<body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="#">UNSW Course Advisor</a>
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">UNSW Course Advisor</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <form action="" method="post" class="navbar-form navbar-right">
+                    <div class="form-group">
+                        <input name="zid" type="text" placeholder="zID" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <input name="password" type="password" placeholder="Password" class="form-control">
+                    </div>
+                    <button name="submit" type="submit" class="btn btn-success">Log in</button>
+                </form>
+            </div> <!-- /navbar-collapse -->
         </div>
-        <div id="navbar" class="navbar-collapse collapse">
-          <form action="" method="post" class="navbar-form navbar-right">
-            <div class="form-group">
-              <input name="zid" type="text" placeholder="zID" class="form-control">
-            </div>
-            <div class="form-group">
-              <input name="password" type="password" placeholder="Password" class="form-control">
-            </div>
-            <button name="submit" type="submit" class="btn btn-success">Log in</button>
-          </form>
-        </div> <!-- /navbar-collapse -->
-      </div>
     </nav>
 
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div id="jumbotron" class="jumbotron">
-      <div class="container">
-        <h1>UNSW Course Advisor</h1>
-        <p>UNSW Course Advisor is a course recommendation system for UNSW students.</p>
-        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
-      </div>
+        <div class="container">
+            <h1>UNSW Course Advisor</h1>
+            <p>UNSW Course Advisor is a course recommendation system for UNSW students.</p>
+            <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
+        </div>
     </div>
 
     <!-- Details container -->
     <div id="details" class="container">
-      <div class="row">
-        <div class="col-md-4">
-          <h2>Heading</h2>
-          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+        <div class="row">
+            <div class="col-md-4">
+                <h2>Heading</h2>
+                <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+                <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+            </div>
+            <div class="col-md-4">
+                <h2>Heading</h2>
+                <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+                <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+            </div>
+            <div class="col-md-4">
+                <h2>Heading</h2>
+                <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
+                <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+            </div>
         </div>
-        <div class="col-md-4">
-          <h2>Heading</h2>
-          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
-       </div>
-        <div class="col-md-4">
-          <h2>Heading</h2>
-          <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
-        </div>
-      </div>
 
-      <hr>
-      <footer>
-        <p>&copy; 2016 UNSW Course Advisor.</p>
-      </footer>
+        <hr>
+        <footer>
+            <p>&copy; 2016 UNSW Course Advisor.</p>
+        </footer>
     </div> <!-- /container -->
 
     <!-- Bootstrap core JavaScript
@@ -93,8 +91,8 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>window.jQuery || document.write("<script src='assets/js/vendor/jquery.min.js'><\/script>")</script>
-    <script src="dist/js/bootstrap.min.js"></script>
+    <script src="components/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="assets/js/ie10-viewport-bug-workaround.js"></script>
-  </body>
+</body>
 </html>

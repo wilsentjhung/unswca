@@ -1,16 +1,16 @@
 $(document).ready(function() {
 	$("#handbook").click(function() {
-    $("#handbook").addClass("active").siblings().removeClass("active");
-    $("#overview-content").hide();
+	    $("#handbook").addClass("active").siblings().removeClass("active");
+	    $("#overview-content").hide();
 		$("#report-content").hide();
 		$("#planner-content").hide();
 		$("#handbook-content").show();
 
 		$("#searchinput").keyup(function() {
-      	var input = $(this).val();
+	  		var input = $(this).val();
 
-  		if (input != "" && input.length > 3) {
-  			$("#searchres").show();
+			if (input != "" && input.length > 3) {
+				$("#searchres").show();
 				if ($("#coursebtn").is(":checked")) {
 	  			$.post("inc/search.php", {input: input, type: "course"}, function(data) {
 	  				$("#searchres").html(data);
@@ -24,11 +24,11 @@ $(document).ready(function() {
 	  				$("#searchres").html(data);
 	  			});
 				}
-  		} else {
-  			$("#searchres").hide();
-  		}
-    });
-  });
+			} else {
+				$("#searchres").hide();
+			}
+	    });
+  	});
 });
 
 $(document).ready(function() {
