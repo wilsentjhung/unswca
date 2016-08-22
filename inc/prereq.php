@@ -20,6 +20,26 @@
         $index++;
     }
 
+    function calculate_uoc_courses ($courses_passed, $uoc_required, $pattern) {
+        $k = 0;
+        $uoc_acquired = 0;
+        while ($k < count($courses_passed)) {
+            if (preg_match($pattern, $courses_passed[$k])) {
+                //$uoc_acquired = $courses_passed[$k].uoc; 
+            }
+            $k++;
+
+        }
+
+        if ($uoc_acquired >= $uoc_required) {
+            return "TRUE";
+        }
+
+        return "FALSE";
+
+    }
+
+
     function error_checker ($code_to_check) {
         echo "$code_to_check";
 
@@ -87,6 +107,9 @@
                     if (strcmp($courses_passed[$course_counter], $pre_req_condition[$i]) == 0) {
                         $pre_req_evaluation[$i] = "TRUE";
 
+                    //} elseif (check_equiv_req($courses_passed[$course_counter], $courses_marks, $courses_grades, $pre_req_condition[$i], $uoc, $wam, $stream, $program_code, $career) > 0) {
+                    //    $pre_req_evaluation[$i] = "TRUE";
+
                     }
                     $course_counter++;
                 }
@@ -134,9 +157,9 @@
 
             //for uoc checking
             } elseif (preg_match("/^([0-9]{1,3})_UOC$/", $pre_req_condition[$i], $matches)) {
-                echo "===";
-                echo "$uoc $matches[1]";
-                echo "===";
+                //echo "===";
+                //echo "$uoc $matches[1]";
+                //echo "===";
                 
                 if ($uoc >= $matches[1]) {
                     $pre_req_evaluation[$i] = "TRUE";
@@ -161,6 +184,24 @@
                     $pre_req_evaluation[$i] = "FALSE";
                 }
 
+            // UOC subject checking (12_UOC_LEVEL_1_CHEM, 6_UOC_LEVEL_1_BABS_BIOS)
+            } elseif (preg_match("/^([0-9]{1,3})_UOC_LEVEL_([0-9])(_([A-Z]{4}))(_([A-Z]{4}))?$/", $pre_req_condition[$i], $matches)) {
+                $uoc_required = $matches[1];
+                $j = 4;
+                $regex = "(";
+                while ($j < count($matches)) {
+                    if ($j > 4) {
+                        $regex .= "|";
+                    }
+                    $regex .= $matches[$j];
+                    $regex .= $matches[2];
+                    $regex .= "...";
+                    $j += 2;
+                }
+                $regex .= ")";
+                $pre_req_evaluation[$i] = calculate_uoc_courses ($courses_passed, $uoc_required, $regex);
+
+
             //school approval
             } elseif (strcmp($pre_req_condition[$i], "SCHOOL_APPROVAL") == 0) {
                 $pre_req_evaluation[$i] = "FALSE";
@@ -175,13 +216,21 @@
 
             }
 
-            echo $pre_req_evaluation[$i];
+            //echo $pre_req_evaluation[$i];
             $i++;
         }
-        #$eval = eval("return " . implode(" ", $pre_req_evaluation) . ";");
-        #echo $eval;
-        #echo eval("return " . "(1&&0)" . ";");
-        return eval("return " . implode(" ", $pre_req_evaluation) . ";");
+        //$eval = eval("return " . implode(" ", $pre_req_evaluation) . ";");
+        //echo $eval;
+        //echo eval("return " . "(1&&0)" . ";");
+
+        $pre_req_evaluation_string = implode(" ", $pre_req_evaluation);
+        echo $pre_req_result[0];
+
+        echo $pre_req_evaluation_string;
+        if (preg_match("/(FALSE|TRUE)\s*\(/i", $pre_req_evaluation_string)) {
+            return -1;
+        }
+        return eval("return " . $pre_req_evaluation_string . ";");
     }
 
     //assumes the same index corresponds for courses_passed, marks and grades.
@@ -219,6 +268,9 @@
                     //echo $co_req_condition[$i];
                     if (strcmp($courses_passed[$course_counter], $co_req_condition[$i]) == 0) {
                         $co_req_evaluation[$i] = "TRUE";
+
+                    //} elseif (check_equiv_req ($courses_passed[$course_counter], $courses_marks, $courses_grades, $co_req_condition[$i], $uoc, $wam, $stream, $program_code, $career) > 0) {
+                    //    $co_req_evaluation[$i] = "TRUE";
 
                     }
                     $course_counter++;
@@ -304,12 +356,20 @@
 
             }
 
-            echo $co_req_evaluation[$i];
+            //echo $co_req_evaluation[$i];
             $i++;
         }
-        #$eval = eval("return " . implode(" ", $co_req_evaluation) . ";");
-        #echo $eval;
-        #echo eval("return " . "(1&&0)" . ";");
+        //$eval = eval("return " . implode(" ", $co_req_evaluation) . ";");
+        //echo $eval;
+        //echo eval("return " . "(1&&0)" . ";");
+        $co_req_evaluation_string = implode(" ", $co_req_evaluation);
+
+        echo $co_req_result[0];
+
+        echo $co_req_evaluation_string;
+        if (preg_match("/(FALSE|TRUE)\s*\(/i", $co_req_evaluation_string)) {
+            return -1;
+        }
         return eval("return " . implode(" ", $co_req_evaluation) . ";");
     }
 
@@ -350,76 +410,6 @@
                     $course_counter++;
                 }
 
-            //checking individual subject with a minimum grade
-            } elseif (preg_match("/^[A-Z]{4}[0-9]{4}\{([A-Z0-9]{2})\}$/", $equiv_req_condition[$i], $matches)) {
-                $course_counter = 0;
-                while ($course_counter < count($courses_passed)) {
-                    if (strcmp($courses_passed[$course_counter], $equiv_req_condition[$i])) {
-                        if (preg_match("/^[A-Z]{4}[0-9]{4}\{([0-9]{1,3})\}$/", $matches[1])) {
-                            if ($courses_marks[$course_counter] >= $matches[1]) {
-                                $equiv_req_evaluation[$i] = "TRUE";
-                            }
-
-                        } else {
-                            if (strcmp($matches[1], "PS")) {
-                                if (strcmp($courses_grades[$course_counter], "PS") || strcmp($courses_grades[$course_counter], "CR") || strcmp($courses_grades[$course_counter], "DN") || strcmp($courses_grades[$course_counter], "HD")) {
-                                    $equiv_req_evaluation[$i] = "TRUE";
-
-                                }
-                            } elseif (strcmp($matches[1], "CR")) {
-                                if (strcmp($courses_grades[$course_counter], "CR") || strcmp($courses_grades[$course_counter], "DN") || strcmp($courses_grades[$course_counter], "HD")) {
-                                    $equiv_req_evaluation[$i] = "TRUE";
-                                    
-                                }
-                            } elseif (strcmp($matches[1], "DN")) {
-                                if (strcmp($courses_grades[$course_counter], "DN") || strcmp($courses_grades[$course_counter], "HD")) {
-                                    $equiv_req_evaluation[$i] = "TRUE";
-                                    
-                                }
-                            } elseif (strcmp($matches[1], "HD")) {
-                                if (strcmp($courses_grades[$course_counter], "HD")) {
-                                    $equiv_req_evaluation[$i] = "TRUE";
-                                    
-                                }
-                            }
-                        }
-
-                    }
-                    $course_counter++;
-                }
-                if (!strcmp($equiv_req_evaluation[$i], "TRUE")) {
-                    $equiv_req_evaluation[$i] = "FALSE";
-                }
-
-            //for uoc checking
-            } elseif (preg_match("/^([0-9]{1,3})_UOC$/", $equiv_req_condition[$i], $matches)) {
-                if ($uoc >= $matches[1]) {
-                    $equiv_req_evaluation[$i] = "TRUE";
-                } else {
-                    $equiv_req_evaluation[$i] = "FALSE";
-                }
-
-
-            //for wam checking
-            } elseif (preg_match("/^([0-9]{1,3})_WAM$/", $equiv_req_condition[$i], $matches)) {
-                if ($wam >= $matches[1]) {
-                    $equiv_req_evaluation[$i] = "TRUE";
-                } else {
-                    $equiv_req_evaluation[$i] = "FALSE";
-                }
-
-            //program code checking
-            } elseif (preg_match("/^([0-9]{4})$/", $equiv_req_condition[$i], $matches)) {
-                if ($program_code == $matches[1]) {
-                    $equiv_req_evaluation[$i] = "TRUE";
-                } else {
-                    $equiv_req_evaluation[$i] = "FALSE";
-                }
-
-            //school approval
-            } elseif (strcmp($equiv_req_condition[$i], "SCHOOL_APPROVAL") == 0) {
-                $equiv_req_evaluation[$i] = "FALSE";
-
             //things not handled yet
             } elseif (preg_match("/^[A-Z_a-z0-9]+$/", $equiv_req_condition[$i])) {
                 $equiv_req_evaluation[$i] = "FALSE";
@@ -430,12 +420,20 @@
 
             }
 
-            echo $equiv_req_evaluation[$i];
+            //echo $equiv_req_evaluation[$i];
             $i++;
         }
-        #$eval = eval("return " . implode(" ", $equiv_req_evaluation) . ";");
-        #echo $eval;
-        #echo eval("return " . "(1&&0)" . ";");
+        //$eval = eval("return " . implode(" ", $equiv_req_evaluation) . ";");
+        //echo $eval;
+        //echo eval("return " . "(1&&0)" . ";");
+        $equiv_req_evaluation_string = implode(" ", $equiv_req_evaluation);
+
+        echo $equiv_req_result[0];
+
+        echo $equiv_req_evaluation_string;
+        if (preg_match("/(FALSE|TRUE)\s*\(/i", $equiv_req_evaluation_string)) {
+            return -1;
+        }
         return eval("return " . implode(" ", $equiv_req_evaluation) . ";");
     }
 
@@ -477,76 +475,6 @@
                     $course_counter++;
                 }
 
-            //checking individual subject with a minimum grade
-            } elseif (preg_match("/^[A-Z]{4}[0-9]{4}\{([A-Z0-9]{2})\}$/", $excl_req_condition[$i], $matches)) {
-                $course_counter = 0;
-                while ($course_counter < count($courses_passed)) {
-                    if (strcmp($courses_passed[$course_counter], $excl_req_condition[$i])) {
-                        if (preg_match("/^[A-Z]{4}[0-9]{4}\{([0-9]{1,3})\}$/", $matches[1])) {
-                            if ($courses_marks[$course_counter] >= $matches[1]) {
-                                $excl_req_evaluation[$i] = "TRUE";
-                            }
-
-                        } else {
-                            if (strcmp($matches[1], "PS")) {
-                                if (strcmp($courses_grades[$course_counter], "PS") || strcmp($courses_grades[$course_counter], "CR") || strcmp($courses_grades[$course_counter], "DN") || strcmp($courses_grades[$course_counter], "HD")) {
-                                    $excl_req_evaluation[$i] = "TRUE";
-
-                                }
-                            } elseif (strcmp($matches[1], "CR")) {
-                                if (strcmp($courses_grades[$course_counter], "CR") || strcmp($courses_grades[$course_counter], "DN") || strcmp($courses_grades[$course_counter], "HD")) {
-                                    $excl_req_evaluation[$i] = "TRUE";
-                                    
-                                }
-                            } elseif (strcmp($matches[1], "DN")) {
-                                if (strcmp($courses_grades[$course_counter], "DN") || strcmp($courses_grades[$course_counter], "HD")) {
-                                    $excl_req_evaluation[$i] = "TRUE";
-                                    
-                                }
-                            } elseif (strcmp($matches[1], "HD")) {
-                                if (strcmp($courses_grades[$course_counter], "HD")) {
-                                    $excl_req_evaluation[$i] = "TRUE";
-                                    
-                                }
-                            }
-                        }
-
-                    }
-                    $course_counter++;
-                }
-                if (!strcmp($excl_req_evaluation[$i], "TRUE")) {
-                    $excl_req_evaluation[$i] = "FALSE";
-                }
-
-            //for uoc checking
-            } elseif (preg_match("/^([0-9]{1,3})_UOC$/", $excl_req_condition[$i], $matches)) {
-                if ($uoc >= $matches[1]) {
-                    $excl_req_evaluation[$i] = "TRUE";
-                } else {
-                    $excl_req_evaluation[$i] = "FALSE";
-                }
-
-
-            //for wam checking
-            } elseif (preg_match("/^([0-9]{1,3})_WAM$/", $excl_req_condition[$i], $matches)) {
-                if ($wam >= $matches[1]) {
-                    $excl_req_evaluation[$i] = "TRUE";
-                } else {
-                    $excl_req_evaluation[$i] = "FALSE";
-                }
-
-            //program code checking
-            } elseif (preg_match("/^([0-9]{4})$/", $excl_req_condition[$i], $matches)) {
-                if ($program_code == $matches[1]) {
-                    $excl_req_evaluation[$i] = "TRUE";
-                } else {
-                    $excl_req_evaluation[$i] = "FALSE";
-                }
-
-            //school approval
-            } elseif (strcmp($excl_req_condition[$i], "SCHOOL_APPROVAL") == 0) {
-                $excl_req_evaluation[$i] = "FALSE";
-
             //things not handled yet
             } elseif (preg_match("/^[A-Z_a-z0-9]+$/", $excl_req_condition[$i])) {
                 $excl_req_evaluation[$i] = "FALSE";
@@ -557,127 +485,147 @@
 
             }
 
-            echo $excl_req_evaluation[$i];
+            //echo $excl_req_evaluation[$i];
             $i++;
         }
-        #$eval = eval("return " . implode(" ", $excl_req_evaluation) . ";");
-        #echo $eval;
-        #echo eval("return " . "(1&&0)" . ";");
-        #echo implode(" ", $excl_req_evaluation);
-        #echo error_checker("return " . implode(" ", $excl_req_evaluation) . ";");
+        //$eval = eval("return " . implode(" ", $excl_req_evaluation) . ";");
+        //echo $eval;
+        //echo eval("return " . "(1&&0)" . ";");
+        //echo implode(" ", $excl_req_evaluation);
+        //echo error_checker("return " . implode(" ", $excl_req_evaluation) . ";");
+        $excl_req_evaluation_string = implode(" ", $excl_req_evaluation);
+
+        echo $excl_req_result[0];
+
+        echo $excl_req_evaluation_string;
+        if (preg_match("/(FALSE|TRUE)\s*\(/i", $excl_req_evaluation_string)) {
+            return -1;
+        }
         return eval("return " . implode(" ", $excl_req_evaluation) . ";");
     }    
 
-    $course_query = "SELECT course_code
-                         FROM equivalence eq
-                         WHERE eq.course_code LIKE '%%' AND eq.career LIKE '$career'";
-    $result = pg_query($aims_db_connection, $course_query);
-    
-    $i = 0;
-    echo pg_num_rows($result);
-    echo "<h2>Courses</h2>";
-    echo "<div><table class='table table-striped'>";
-    echo "<thead><tr><th>Course</th><th>Info</th><th>Eligible</th></tr></thead>";
-    echo "<tbody>";
+    function suggest_courses ($start_course, $subjects, $marks, $grades, $totalUOC, $wam, $streams, $programs, $career) {
+        include("pgsql.php");
+        $course_query = "SELECT course_code
+                             FROM equivalence eq
+                             WHERE eq.course_code LIKE '%" . $start_course . "%' AND eq.career LIKE '$career'";
 
-    while ($i < pg_num_rows($result)) {
-        $course_result = pg_fetch_array($result);
+        echo $course_query;
+        $result = pg_query($aims_db_connection, $course_query);
         
-        $check_this_course = $course_result[0];
-        echo "<tr><td>" . $check_this_course . "</td>";
-        echo "<td><br>";
-        $test_has_done_course = has_done_course($subjects, $check_this_course);
-        
-        if ($test_has_done_course == 1) {
-            echo "done = TRUE";
-            $test_has_done_course = 1;
-        } elseif ($test_has_done_course == -1) {
-            echo "done = ERROR";
-        } else {
-            $test_has_done_course = 0;
-            echo "done = FALSE";
+        $i = 0;
+        echo pg_num_rows($result);
+        echo "<h2>Courses</h2>";
+        echo "<div><table class='table table-striped'>";
+        echo "<thead><tr><th>Course</th><th>Info</th><th>Eligible</th></tr></thead>";
+        echo "<tbody>";
+
+        while ($i < pg_num_rows($result)) {
+            $course_result = pg_fetch_array($result);
+            
+            $check_this_course = $course_result[0];
+            echo "<tr><td>" . $check_this_course . "</td>";
+            echo "<td><br>";
+            $test_has_done_course = has_done_course($subjects, $check_this_course);
+            
+            if ($test_has_done_course == 1) {
+                echo "done = TRUE";
+                $test_has_done_course = 1;
+            } elseif ($test_has_done_course == -1) {
+                echo "done = ERROR";
+            } else {
+                $test_has_done_course = 0;
+                echo "done = FALSE";
+            }
+            echo $test_has_done_course;
+            echo "<br>";
+
+            $test_pre = check_pre_req($subjects, $marks, $grades, $check_this_course, $totalUOC, $wam, $streams[0], $programs[0], $career);
+
+            if ($test_pre == 1) {
+                echo "prereq = TRUE";
+                $test_pre = 1;
+            } elseif ($test_pre == -1) {
+                echo "prereq = ERROR";
+            } else {
+                $test_pre = 0;
+                echo "prereq = FALSE";
+            }
+            echo $test_pre;
+            echo "<br>";
+
+            $test_co = check_co_req($subjects, $marks, $grades, $check_this_course, $totalUOC, $wam, $streams[0], $programs[0], $career);
+
+            if ($test_co == 1) {
+                echo "coreq = TRUE";
+                $test_co = 1;
+            } elseif ($test_co == -1) {
+                echo "coreq = ERROR";
+            } else {
+                $test_co = 0;
+                echo "coreq = FALSE";
+            }
+            echo $test_co;
+            echo "<br>";
+
+            $test_equiv = check_equiv_req($subjects, $marks, $grades, $check_this_course, $totalUOC, $wam, $streams[0], $programs[0], $career);
+
+            if ($test_equiv == 1) {
+                echo "equivalence = TRUE";
+                $test_equiv = 1;
+            } elseif ($test_equiv == -1) {
+                echo "equivalence = ERROR";
+            } else {
+                $test_equiv = 0;
+                echo "equivalence = FALSE";
+            }
+            echo $test_equiv;
+            echo "<br>";
+
+            $test_excl = check_excl_req($subjects, $marks, $grades, $check_this_course, $totalUOC, $wam, $streams[0], $programs[0], $career);
+
+            if ($test_excl == 1) {
+                echo "exclusion = TRUE";
+                $test_excl = 1;
+            } elseif ($test_excl == -1) {
+                echo "exclusion = ERROR";
+            } else {
+                $test_excl = 0;
+                echo "exclusion = FALSE";
+            }
+            echo $test_excl;
+            echo "<br>";
+            //echo gettype($test_has_done_course);
+            //echo gettype($test_pre);
+            //echo gettype($test_co);
+            //echo gettype($test_equiv);
+            //echo gettype($test_excl);
+            echo "return " . "(" . "(!(" . $test_has_done_course . "))&&" . $test_pre . "&&" . $test_co . "&&" . "(!(" .$test_equiv . "))&&" . "(!(" . $test_excl . ")))" . ";";
+            echo "<br>";
+            if (($test_has_done_course == -1) || ($test_pre == -1) || ($test_co == -1) || ($test_equiv == -1) || ($test_excl == -1)){
+                $test_final = -1;
+            } else {
+                $test_final = eval("return " . "(" . "(!(" . $test_has_done_course . "))&&" . $test_pre . "&&" . $test_co . "&&" . "(!(" .$test_equiv . "))&&" . "(!(" . $test_excl . ")))" . ";");
+            }
+            if ($test_final == 1) {
+                echo "final = TRUE";
+            } elseif ($test_final == -1) {
+                echo "final = ERROR";
+            } else {
+                $test_final = 0;
+                echo "final = FALSE";
+            }
+            echo "</td>";
+            echo "<td>$test_final</td></tr>";
+            $i++;
         }
-        echo $test_has_done_course;
-        echo "<br>";
-
-        $test_pre = check_pre_req($subjects, $marks, $grades, $check_this_course, $totalUOC, $wam, $streams[0], $programs[0], $career);
-
-        if ($test_pre == 1) {
-            echo "prereq = TRUE";
-            $test_pre = 1;
-        } elseif ($test_pre == -1) {
-            echo "prereq = ERROR";
-        } else {
-            $test_pre = 0;
-            echo "prereq = FALSE";
-        }
-        echo $test_pre;
-        echo "<br>";
-
-        $test_co = check_co_req($subjects, $marks, $grades, $check_this_course, $totalUOC, $wam, $streams[0], $programs[0], $career);
-
-        if ($test_co == 1) {
-            echo "coreq = TRUE";
-            $test_co = 1;
-        } elseif ($test_co == -1) {
-            echo "coreq = ERROR";
-        } else {
-            $test_co = 0;
-            echo "coreq = FALSE";
-        }
-        echo $test_co;
-        echo "<br>";
-
-        $test_equiv = check_equiv_req($subjects, $marks, $grades, $check_this_course, $totalUOC, $wam, $streams[0], $programs[0], $career);
-
-        if ($test_equiv == 1) {
-            echo "equivalence = TRUE";
-            $test_equiv = 1;
-        } elseif ($test_equiv == -1) {
-            echo "equivalence = ERROR";
-        } else {
-            $test_equiv = 0;
-            echo "equivalence = FALSE";
-        }
-        echo $test_equiv;
-        echo "<br>";
-
-        $test_excl = check_excl_req($subjects, $marks, $grades, $check_this_course, $totalUOC, $wam, $streams[0], $programs[0], $career);
-
-        if ($test_excl == 1) {
-            echo "exclusion = TRUE";
-            $test_excl = 1;
-        } elseif ($test_excl == -1) {
-            echo "exclusion = ERROR";
-        } else {
-            $test_excl = 0;
-            echo "exclusion = FALSE";
-        }
-        echo $test_excl;
-        echo "<br>";
-        echo gettype($test_has_done_course);
-        echo gettype($test_pre);
-        echo gettype($test_co);
-        echo gettype($test_equiv);
-        echo gettype($test_excl);
-        echo "return " . "(" . "(!(" . $test_has_done_course . "))&&" . $test_pre . "&&" . $test_co . "&&" . "(!(" .$test_equiv . "))&&" . "(!(" . $test_excl . ")))" . ";";
-        if (($test_has_done_course == -1) || ($test_pre == -1) || ($test_co == -1) || ($test_equiv == -1) || ($test_excl == -1)){
-            $test_final = -1;
-        } else {
-            $test_final = eval("return " . "(" . "(!(" . $test_has_done_course . "))&&" . $test_pre . "&&" . $test_co . "&&" . "(!(" .$test_equiv . "))&&" . "(!(" . $test_excl . ")))" . ";");
-        }
-        if ($test_final == 1) {
-            echo "final = TRUE";
-        } elseif ($test_final == -1) {
-            echo "final = ERROR";
-        } else {
-            $test_final = 0;
-            echo "final = FALSE";
-        }
-        echo "</td>";
-        echo "<td>$test_final</td></tr>";
-        $i++;
+        echo "</tbody>";
+        echo "</table></div>";
     }
-    echo "</tbody>";
-    echo "</table></div>";
+
+    suggest_courses("PHAR", $subjects, $marks, $grades, $totalUOC, $wam, $streams, $programs, $career);
+    //echo "<br>";
+    //echo "LAWS";
+    //echo "<br>";
+    //suggest_courses("LAWS23", $subjects, $marks, $grades, $totalUOC, $wam, $streams, $programs, $career);
 ?>
