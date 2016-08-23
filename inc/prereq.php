@@ -23,6 +23,7 @@
     function calculate_uoc_courses ($courses_passed, $uoc_required, $pattern) {
         $k = 0;
         $uoc_acquired = 0;
+        echo $pattern;
         while ($k < count($courses_passed)) {
             if (preg_match($pattern, $courses_passed[$k])) {
                 //$uoc_acquired = $courses_passed[$k].uoc; 
@@ -188,7 +189,7 @@
             } elseif (preg_match("/^([0-9]{1,3})_UOC_LEVEL_([0-9])(_([A-Z]{4}))(_([A-Z]{4}))?$/", $pre_req_condition[$i], $matches)) {
                 $uoc_required = $matches[1];
                 $j = 4;
-                $regex = "(";
+                $regex = "/^(";
                 while ($j < count($matches)) {
                     if ($j > 4) {
                         $regex .= "|";
@@ -198,7 +199,7 @@
                     $regex .= "...";
                     $j += 2;
                 }
-                $regex .= ")";
+                $regex .= ")$/";
                 $pre_req_evaluation[$i] = calculate_uoc_courses ($courses_passed, $uoc_required, $regex);
 
 
@@ -623,7 +624,7 @@
         echo "</table></div>";
     }
 
-    suggest_courses("PHAR", $subjects, $marks, $grades, $totalUOC, $wam, $streams, $programs, $career);
+    suggest_courses("COMP", $subjects, $marks, $grades, $totalUOC, $wam, $streams, $programs, $career);
     //echo "<br>";
     //echo "LAWS";
     //echo "<br>";
